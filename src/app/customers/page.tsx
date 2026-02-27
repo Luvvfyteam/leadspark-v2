@@ -10,12 +10,38 @@ import { useAppStore } from '@/stores/app-store';
 import { usePermissions } from '@/lib/usePermissions';
 import { useToast } from '@/components/ui/toast';
 import { PinButton } from '@/components/shared/PinButton';
+import { SmartFilterBar, type FilterConfig } from '@/components/shared/SmartFilterBar';
 import { CUSTOMER_STATUS_CONFIG, INDUSTRY_OPTIONS } from '@/lib/constants';
 import { formatCurrency, getRelativeTime } from '@/lib/utils';
 import { mockUsers } from '@/lib/mock-data';
 import { mockDeals } from '@/lib/mock-data-extra';
-import { Search, Plus, Star, Download, X } from 'lucide-react';
+import { Plus, Star, Download, X, Users } from 'lucide-react';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { CustomerStatus, Customer } from '@/types';
+
+const CUSTOMER_FILTERS: FilterConfig[] = [
+    {
+        key: 'status',
+        label: 'สถานะ',
+        type: 'select',
+        options: Object.entries(CUSTOMER_STATUS_CONFIG).map(([value, cfg]) => ({
+            value,
+            label: cfg.label,
+        })),
+    },
+    {
+        key: 'industry',
+        label: 'อุตสาหกรรม',
+        type: 'select',
+        options: INDUSTRY_OPTIONS.map((ind) => ({ value: ind, label: ind })),
+    },
+    {
+        key: 'assigned_to',
+        label: 'ผู้ดูแล',
+        type: 'select',
+        options: mockUsers.map((u) => ({ value: u.id, label: u.name })),
+    },
+];
 
 function exportCSV(customers: Customer[]) {
     const headers = ['ชื่อธุรกิจ', 'อุตสาหกรรม', 'โทรศัพท์', 'อีเมล', 'สถานะ', 'ผู้ดูแล', 'สร้างเมื่อ'];
@@ -39,27 +65,41 @@ export default function CustomersPage() {
     const { isAdmin, canExport } = usePermissions();
     const { showToast } = useToast();
 
-    const [search, setSearch] = useState('');
-    const [statusFilter, setStatusFilter] = useState<string>('all');
-    const [industryFilter, setIndustryFilter] = useState<string>('all');
+    const [searchQuery, setSearchQuery] = useState('');
+    const [activeFilters, setActiveFilters] = useState<Record<string, string | string[]>>({});
     const [showAddForm, setShowAddForm] = useState(false);
     const [newName, setNewName] = useState('');
     const [newIndustry, setNewIndustry] = useState('ร้านอาหาร/คาเฟ่');
     const [newPhone, setNewPhone] = useState('');
     const [newEmail, setNewEmail] = useState('');
 
+    const handleFilterChange = (key: string, value: string | string[] | null) => {
+        setActiveFilters((prev) => {
+            if (value === null) {
+                const next = { ...prev };
+                delete next[key];
+                return next;
+            }
+            return { ...prev, [key]: value };
+        });
+    };
+
     const filtered = useMemo(() => {
         let list = [...customers];
-        if (search.trim()) {
-            const q = search.toLowerCase();
-            list = list.filter((c) => c.business_name.toLowerCase().includes(q) || c.phone.includes(q) || c.email.toLowerCase().includes(q));
+        if (searchQuery.trim()) {
+            const q = searchQuery.toLowerCase();
+            list = list.filter((c) =>
+                c.business_name.toLowerCase().includes(q) ||
+                c.phone.includes(q) ||
+                c.email.toLowerCase().includes(q),
+            );
         }
-        if (statusFilter !== 'all') list = list.filter((c) => c.status === statusFilter);
-        if (industryFilter !== 'all') list = list.filter((c) => c.industry === industryFilter);
-        // Pinned first
+        if (activeFilters.status) list = list.filter((c) => c.status === activeFilters.status);
+        if (activeFilters.industry) list = list.filter((c) => c.industry === activeFilters.industry);
+        if (activeFilters.assigned_to) list = list.filter((c) => c.assigned_to === activeFilters.assigned_to);
         list.sort((a, b) => (a.is_pinned === b.is_pinned ? 0 : a.is_pinned ? -1 : 1));
         return list;
-    }, [customers, search, statusFilter, industryFilter]);
+    }, [customers, searchQuery, activeFilters]);
 
     const getDeals = (custId: string) =>
         deals.filter((d) => d.customer_id === custId);
@@ -113,37 +153,31 @@ export default function CustomersPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-4">
             {/* Toolbar */}
-            <div className="flex flex-wrap items-center gap-3">
-                <div className="relative flex-1 min-w-[200px]">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                        placeholder="ค้นหาลูกค้า..."
-                        value={search}
-                        onChange={(e) => setSearch(e.target.value)}
-                        className="pl-9"
-                    />
+            <div className="flex flex-col gap-3">
+                <div className="flex items-center justify-between gap-3">
+                    <h1 className="text-lg font-semibold text-gray-900">
+                        ฐานลูกค้า
+                        <span className="ml-2 text-sm font-normal text-gray-400">({filtered.length} ราย)</span>
+                    </h1>
+                    <div className="flex items-center gap-2">
+                        {canExport && (
+                            <Button variant="outline" size="sm" onClick={() => { exportCSV(filtered); showToast('ดาวน์โหลด CSV แล้ว'); }}>
+                                <Download className="w-4 h-4 mr-1" /> Export
+                            </Button>
+                        )}
+                        <Button size="sm" onClick={() => setShowAddForm(true)}>
+                            <Plus className="w-4 h-4 mr-1" /> เพิ่มลูกค้า
+                        </Button>
+                    </div>
                 </div>
-                <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                    <option value="all">ทุกสถานะ</option>
-                    <option value="active">เปิดใช้งาน</option>
-                    <option value="pending_delivery">รอส่งมอบ</option>
-                    <option value="overdue_payment">เกินกำหนดชำระ</option>
-                    <option value="inactive">ไม่เปิดใช้งาน</option>
-                </select>
-                <select value={industryFilter} onChange={(e) => setIndustryFilter(e.target.value)} className="border border-gray-300 rounded-lg px-3 py-2 text-sm bg-white">
-                    <option value="all">ทุกอุตสาหกรรม</option>
-                    {INDUSTRY_OPTIONS.map((ind) => (
-                        <option key={ind} value={ind}>{ind}</option>
-                    ))}
-                </select>
-                {canExport && (
-                    <Button variant="outline" size="sm" onClick={() => { exportCSV(filtered); showToast('ดาวน์โหลด CSV แล้ว'); }}>
-                        <Download className="w-4 h-4 mr-1" /> Export CSV
-                    </Button>
-                )}
-                <Button size="sm" onClick={() => setShowAddForm(true)}>
-                    <Plus className="w-4 h-4 mr-1" /> เพิ่มลูกค้า
-                </Button>
+                <SmartFilterBar
+                    filters={CUSTOMER_FILTERS}
+                    activeFilters={activeFilters}
+                    onFilterChange={handleFilterChange}
+                    onSearch={setSearchQuery}
+                    searchPlaceholder="ค้นหาชื่อ / เบอร์ / อีเมล..."
+                    searchValue={searchQuery}
+                />
             </div>
 
             {/* Add Form Modal */}
@@ -169,13 +203,13 @@ export default function CustomersPage() {
 
             {/* Customer list */}
             {filtered.length === 0 ? (
-                <div className="text-center py-16">
-                    <div className="text-5xl mb-3">👥</div>
-                    <p className="text-gray-600 font-medium">ยังไม่มีลูกค้า เริ่มเพิ่มคนแรกเลย!</p>
-                    <Button size="sm" className="mt-3" onClick={() => setShowAddForm(true)}>
-                        <Plus className="w-4 h-4 mr-1" /> เพิ่มลูกค้า
-                    </Button>
-                </div>
+                <EmptyState
+                    icon={<Users className="h-6 w-6" />}
+                    title={customers.length === 0 ? 'ยังไม่มีลูกค้าในระบบ' : 'ไม่พบลูกค้าที่ตรงเงื่อนไข'}
+                    description={customers.length === 0 ? 'นำเข้าจาก Excel หรือเพิ่มลูกค้าทีละราย' : 'ลองปรับตัวกรองหรือคำค้นหาใหม่'}
+                    actionLabel={customers.length === 0 ? '+ เพิ่มลูกค้า' : undefined}
+                    onAction={customers.length === 0 ? () => setShowAddForm(true) : undefined}
+                />
             ) : (
                 <div className="grid gap-3">
                     {filtered.map((customer) => {

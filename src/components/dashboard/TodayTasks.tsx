@@ -4,6 +4,7 @@ import { useRouter } from 'next/navigation';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAppStore } from '@/stores/app-store';
 import { UserAvatar } from '@/components/shared/UserAvatar';
+import { CheckboxActionBar } from '@/components/shared/CheckboxActionBar';
 import { TASK_CATEGORY_CONFIG } from '@/lib/constants';
 import { Badge } from '@/components/ui/badge';
 import { getDaysOverdue } from '@/lib/utils';
@@ -31,9 +32,12 @@ export function TodayTasks() {
     const getUserName = (id: string) =>
         mockUsers.find((u) => u.id === id)?.name || '';
 
-    const handleToggle = (taskId: string, taskTitle: string) => {
+    const handleConfirm = (taskId: string, taskTitle: string, note?: string) => {
         toggleTask(taskId);
-        showToast(`"${taskTitle}" เสร็จแล้ว ✓`, () => toggleTask(taskId));
+        const msg = note
+            ? `"${taskTitle}" เสร็จแล้ว ✓ · หมายเหตุ: ${note}`
+            : `"${taskTitle}" เสร็จแล้ว ✓`;
+        showToast(msg, () => toggleTask(taskId));
     };
 
     return (
@@ -53,7 +57,7 @@ export function TodayTasks() {
                         🎉 ไม่มีงานวันนี้ เยี่ยม!
                     </p>
                 ) : (
-                    <div className="space-y-2">
+                    <div className="space-y-1">
                         {allTasks.map((task) => {
                             const isOverdue = task.due_date < today;
                             const daysOver = isOverdue ? getDaysOverdue(task.due_date) : 0;
@@ -62,47 +66,45 @@ export function TodayTasks() {
                             const userName = getUserName(task.assigned_to);
 
                             return (
-                                <div
+                                <CheckboxActionBar
                                     key={task.id}
-                                    className="flex items-center gap-3 p-2.5 rounded-lg hover:bg-gray-50 group cursor-pointer"
+                                    checked={task.is_completed}
+                                    onConfirm={(note) => handleConfirm(task.id, task.title, note)}
+                                    onCancel={() => {}}
                                 >
-                                    <input
-                                        type="checkbox"
-                                        checked={task.is_completed}
-                                        onChange={(e) => { e.stopPropagation(); handleToggle(task.id, task.title); }}
-                                        className="w-4 h-4 rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
-                                    />
-                                    <div className="flex-1 min-w-0" onClick={() => router.push('/tasks')}>
-                                        <div className="flex items-center gap-2">
-                                            <span className="text-sm font-medium text-gray-900 truncate">
-                                                {task.title}
-                                            </span>
-                                            {isOverdue && (
-                                                <span className="inline-flex items-center gap-1 text-xs text-red-600 whitespace-nowrap">
-                                                    <AlertCircle className="w-3 h-3" />
-                                                    {daysOver} วันเกินกำหนด
+                                    <div className="flex items-start justify-between gap-2">
+                                        <div className="min-w-0 flex-1">
+                                            <div className="flex items-center gap-2">
+                                                <span className="text-sm font-medium text-gray-900 truncate">
+                                                    {task.title}
                                                 </span>
-                                            )}
-                                        </div>
-                                        <div className="flex items-center gap-2 mt-0.5">
-                                            {customerName && (
-                                                <button
-                                                    onClick={(e) => { e.stopPropagation(); router.push(`/customers/${task.customer_id}`); }}
-                                                    className="text-xs text-blue-600 hover:underline truncate"
+                                                {isOverdue && (
+                                                    <span className="inline-flex items-center gap-1 text-xs text-red-600 whitespace-nowrap">
+                                                        <AlertCircle className="w-3 h-3" />
+                                                        {daysOver} วันเกิน
+                                                    </span>
+                                                )}
+                                            </div>
+                                            <div className="flex items-center gap-2 mt-0.5">
+                                                {customerName && (
+                                                    <button
+                                                        onClick={(e) => { e.stopPropagation(); router.push(`/customers/${task.customer_id}`); }}
+                                                        className="text-xs text-blue-600 hover:underline truncate"
+                                                    >
+                                                        {customerName}
+                                                    </button>
+                                                )}
+                                                <Badge
+                                                    variant="secondary"
+                                                    className={`text-[10px] px-1.5 py-0 ${catConfig?.color || ''}`}
                                                 >
-                                                    {customerName}
-                                                </button>
-                                            )}
-                                            <Badge
-                                                variant="secondary"
-                                                className={`text-[10px] px-1.5 py-0 ${catConfig?.color || ''}`}
-                                            >
-                                                {catConfig?.label || task.category}
-                                            </Badge>
+                                                    {catConfig?.label || task.category}
+                                                </Badge>
+                                            </div>
                                         </div>
+                                        <UserAvatar name={userName} className="w-6 h-6 shrink-0 text-[10px]" />
                                     </div>
-                                    <UserAvatar name={userName} className="w-6 h-6 text-[10px]" />
-                                </div>
+                                </CheckboxActionBar>
                             );
                         })}
                     </div>
