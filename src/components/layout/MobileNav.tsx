@@ -10,7 +10,7 @@ import { Zap } from 'lucide-react';
 
 export function MobileNav() {
     const pathname = usePathname();
-    const { mobileNavOpen, setMobileNavOpen } = useAppStore();
+    const { mobileNavOpen, setMobileNavOpen, currentUser } = useAppStore();
 
     return (
         <Sheet open={mobileNavOpen} onOpenChange={setMobileNavOpen}>
@@ -22,7 +22,7 @@ export function MobileNav() {
                     <SheetTitle className="font-bold text-base">LeadSpark</SheetTitle>
                 </SheetHeader>
 
-                <nav className="py-3 px-2 overflow-y-auto space-y-1">
+                <nav className="flex-1 py-3 px-2 overflow-y-auto space-y-1">
                     {NAV_SECTIONS.map((section, sectionIdx) => (
                         <div key={section.title}>
                             {sectionIdx > 0 && (
@@ -73,7 +73,23 @@ export function MobileNav() {
                         </div>
                     ))}
                 </nav>
+
+                <div className="mt-auto p-4 border-t border-gray-100 bg-white">
+                    <div className="flex items-center gap-3">
+                        <UserAvatar name={currentUser.name} className="w-9 h-9 border-2 border-blue-50 shadow-sm" />
+                        <div className="flex-1 min-w-0">
+                            <p className="text-sm font-bold text-gray-900 truncate">{currentUser.name}</p>
+                            <p className="text-[10px] text-gray-400 font-medium uppercase tracking-wider">{currentUser.role === 'admin' ? 'ผู้ดูแลระบบ' : 'สมาชิกทีม'}</p>
+                        </div>
+                        <button className="p-2 hover:bg-gray-50 rounded-lg text-gray-400">
+                            <Settings className="w-4 h-4" />
+                        </button>
+                    </div>
+                </div>
             </SheetContent>
         </Sheet>
     );
 }
+
+import { UserAvatar } from '@/components/shared/UserAvatar';
+import { Settings } from 'lucide-react';

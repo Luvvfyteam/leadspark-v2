@@ -1,7 +1,7 @@
 'use client';
 
 import { create } from 'zustand';
-import { Customer, Activity, Task, User, Lead, BoardStatus, Document as Doc, Payment, Deal, Service, Goal, Notification, TaskComment } from '@/types';
+import { Customer, Activity, Task, User, Lead, BoardStatus, Document as Doc, Payment, Deal, Service, Goal, Notification, TaskComment, BoardColumn } from '@/types';
 import { mockCustomers, mockUsers, mockTeam } from '@/lib/mock-data';
 import { mockTasks, mockDeals, mockComments } from '@/lib/mock-data-extra';
 import { mockActivities } from '@/lib/mock-activities';
@@ -11,6 +11,14 @@ import { mockLeadsExtra } from '@/lib/mock-leads';
 const allLeads = [...mockLeads, ...mockLeadsExtra];
 
 const CURRENT_MONTH = '2026-02';
+
+const defaultBoardColumns: BoardColumn[] = [
+    { id: 'new', title: 'ใหม่', color: 'bg-blue-500', order: 0 },
+    { id: 'contacted', title: 'ติดต่อแล้ว', color: 'bg-yellow-500', order: 1 },
+    { id: 'interested', title: 'สนใจ', color: 'bg-purple-500', order: 2 },
+    { id: 'won', title: 'ปิดได้', color: 'bg-green-500', order: 3 },
+    { id: 'lost', title: 'ไม่สำเร็จ', color: 'bg-gray-500', order: 4 },
+];
 
 const defaultNotifications: Notification[] = [
     { id: 'n1', message: 'Som มอบหมายงานใหม่: ส่งเว็บร้าน GHI', type: 'task', link: '/tasks', is_read: false, created_at: '2026-02-17T09:00:00Z' },
@@ -118,6 +126,13 @@ interface AppState {
     addService: (service: Service) => void;
     updateService: (id: string, data: Partial<Service>) => void;
     deleteService: (id: string) => void;
+
+    // Board
+    boardColumns: BoardColumn[];
+    addBoardColumn: (column: BoardColumn) => void;
+    updateBoardColumn: (id: string, data: Partial<BoardColumn>) => void;
+    removeBoardColumn: (id: string) => void;
+    reorderBoardColumns: (columns: BoardColumn[]) => void;
 
     // Goals
     goals: Goal[];
@@ -323,6 +338,23 @@ export const useAppStore = create<AppState>((set, get) => ({
         set((state) => ({
             services: state.services.filter((s) => s.id !== id),
         })),
+
+    // Board
+    boardColumns: defaultBoardColumns,
+    addBoardColumn: (column) =>
+        set((state) => ({ boardColumns: [...state.boardColumns, column] })),
+    updateBoardColumn: (id, data) =>
+        set((state) => ({
+            boardColumns: state.boardColumns.map((c) =>
+                c.id === id ? { ...c, ...data } : c
+            ),
+        })),
+    removeBoardColumn: (id) =>
+        set((state) => ({
+            boardColumns: state.boardColumns.filter((c) => c.id !== id),
+        })),
+    reorderBoardColumns: (columns) =>
+        set({ boardColumns: columns }),
 
     // Goals
     goals: defaultGoals,

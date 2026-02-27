@@ -926,6 +926,10 @@ export default function TasksPage() {
 
     // ── Render ──────────────────────────────────────────────────────────────
 
+import { EmptyState } from '@/components/shared/EmptyState';
+
+// ... (existing code)
+
     return (
         <div className="max-w-5xl mx-auto space-y-5">
             {/* Header */}
@@ -959,22 +963,36 @@ export default function TasksPage() {
             <div>
                 {view === 'completed' ? (
                     completedTasks.length === 0 ? (
-                        <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                            <span className="text-4xl mb-3">📋</span>
-                            <p className="text-base font-medium">ยังไม่มีงานที่เสร็จแล้ว</p>
-                        </div>
+                        <EmptyState
+                            icon={<CheckCircle2 className="h-6 w-6" />}
+                            title="ยังไม่มีงานที่เสร็จแล้ว"
+                            description="เมื่อคุณทำงานเสร็จ งานเหล่านั้นจะมาปรากฏที่นี่"
+                        />
                     ) : renderCompleted()
                 ) : activeTasks.length === 0 && view !== 'all' && view !== 'byDate' ? (
-                    <div className="flex flex-col items-center justify-center py-16 text-gray-400">
-                        <span className="text-4xl mb-3">🎉</span>
-                        <p className="text-base font-medium">ไม่มีงานค้างอยู่</p>
-                    </div>
+                    <EmptyState
+                        icon={<Plus className="h-6 w-6" />}
+                        title="ไม่มีงานค้างอยู่"
+                        description="ยินดีด้วย! คุณจัดการงานทั้งหมดเสร็จเรียบร้อยแล้ว"
+                        actionLabel="เพิ่มงานใหม่"
+                        onAction={() => setShowAddPanel(true)}
+                    />
                 ) : (
                     <>
                         {view === 'byDate' && renderByDate()}
                         {view === 'byPerson' && renderByPerson()}
                         {view === 'byCustomer' && renderByCustomer()}
                         {view === 'all' && renderAll()}
+                        
+                        {activeTasks.length === 0 && view === 'all' && (
+                            <EmptyState
+                                icon={<Plus className="h-6 w-6" />}
+                                title="ยังไม่มีงานในระบบ"
+                                description="เริ่มต้นด้วยการเพิ่มงานใหม่ให้ทีมของคุณ"
+                                actionLabel="เพิ่มงานใหม่"
+                                onAction={() => setShowAddPanel(true)}
+                            />
+                        )}
                     </>
                 )}
             </div>

@@ -3,8 +3,15 @@
 export type UserRole = 'admin' | 'member';
 export type TeamPlan = 'solo' | 'team' | 'business';
 export type CustomerStatus = 'active' | 'pending_delivery' | 'overdue_payment' | 'inactive';
-export type BoardStatus = 'new' | 'contacted' | 'interested' | 'won' | 'lost';
+export type BoardStatus = string;
 export type DealStatus = 'proposal' | 'in_progress' | 'completed' | 'cancelled';
+
+export interface BoardColumn {
+  id: string;
+  title: string;
+  color: string;
+  order: number;
+}
 export type DealPaymentStatus = 'unpaid' | 'partial' | 'paid';
 export type TaskCategory = 'sales' | 'delivery' | 'finance' | 'meeting' | 'other';
 export type ActivityType = 'call' | 'line' | 'email' | 'meeting' | 'note' | 'status_change' | 'payment' | 'task_completed';

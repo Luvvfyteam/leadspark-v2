@@ -330,8 +330,8 @@ export default function CustomerDetailPage({ params }: { params: Promise<{ id: s
                         <CardHeader className="pb-2 flex flex-row items-center justify-between">
                             <CardTitle className="text-sm font-semibold">เอกสาร ({customerDocs.length})</CardTitle>
                             <div className="flex gap-2">
-                                <Button size="sm" variant="outline">สร้างใบเสนอราคา</Button>
-                                <Button size="sm" variant="outline">สร้างใบแจ้งหนี้</Button>
+                                <Button size="sm" variant="outline" onClick={() => router.push(`/documents?customer_id=${customer.id}&type=quotation`)}>สร้างใบเสนอราคา</Button>
+                                <Button size="sm" variant="outline" onClick={() => router.push(`/documents?customer_id=${customer.id}&type=invoice`)}>สร้างใบแจ้งหนี้</Button>
                             </div>
                         </CardHeader>
                         <CardContent className="pt-0">

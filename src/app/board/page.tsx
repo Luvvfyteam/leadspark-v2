@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useMemo, useCallback } from 'react';
+import { useState, useMemo, useCallback, useRef, useEffect } from 'react';
 import { useToast } from '@/components/ui/toast';
 import { useRouter } from 'next/navigation';
 import { DragDropContext, Droppable, Draggable, DropResult } from '@hello-pangea/dnd';
@@ -12,13 +12,16 @@ import { Textarea } from '@/components/ui/textarea';
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from '@/components/ui/dialog';
 import { useAppStore } from '@/stores/app-store';
 import { UserAvatar } from '@/components/shared/UserAvatar';
-import { BOARD_COLUMNS } from '@/lib/constants';
+import { SlideOverPanel } from '@/components/shared/SlideOverPanel';
+import { ACTIVITY_TYPE_CONFIG } from '@/lib/constants';
 import { mockUsers } from '@/lib/mock-data';
-import { getRelativeTime } from '@/lib/utils';
-import { BoardStatus, ActivityType, Lead } from '@/types';
+import { getRelativeTime, formatCurrency } from '@/lib/utils';
+import { BoardStatus, ActivityType, Lead, BoardColumn, Activity } from '@/types';
 import {
-    Search, Filter, Star, GripVertical, CalendarDays, User,
-    ArrowRight,
+    Search, Star, GripVertical, CalendarDays, User,
+    ArrowRight, Plus, MoreHorizontal, Edit2, Trash2,
+    Phone, Mail, Globe, Facebook, MessageCircle, MapPin, ExternalLink,
+    Clock, CheckCircle2, X
 } from 'lucide-react';
 
 function getScoreColor(score: number) {
@@ -30,16 +33,167 @@ function getScoreColor(score: number) {
 interface MoveModalState {
     open: boolean;
     lead: Lead | null;
-    fromColumn: BoardStatus | null;
-    toColumn: BoardStatus | null;
+    fromColumn: string | null;
+    toColumn: string | null;
 }
+
+// ── Lead Card Component ───────────────────────────────────────────────────
+
+function LeadCard({ lead, provided, snapshot, onClick }: { 
+    lead: Lead; 
+    provided: any; 
+    snapshot: any;
+    onClick: () => void;
+}) {
+    const getUserName = (id: string) => mockUsers.find((u) => u.id === id)?.name || '';
+
+    return (
+        <div
+            ref={provided.innerRef}
+            {...provided.draggableProps}
+            className={`group ${snapshot.isDragging ? 'rotate-2 shadow-lg' : ''}`}
+        >
+            <Card
+                className="shadow-sm cursor-pointer hover:shadow-md transition-all mb-2"
+                onClick={onClick}
+            >
+                <CardContent className="p-3">
+                    <div className="flex items-start justify-between">
+                        <div
+                            {...provided.dragHandleProps}
+                            className="mt-0.5 mr-1.5 text-gray-300 cursor-grab active:cursor-grabbing"
+                        >
+                            <GripVertical className="w-4 h-4" />
+                        </div>
+                        <div className="flex-1 min-w-0">
+                            <h4 className="text-sm font-semibold text-gray-900 truncate">
+                                {lead.business_name}
+                            </h4>
+                            <p className="text-[11px] text-gray-500 truncate mt-0.5">
+                                {lead.industry}
+                            </p>
+                        </div>
+                        <Badge className={`text-[10px] font-bold ml-1.5 flex-shrink-0 ${getScoreColor(lead.ai_score)}`}>
+                            {lead.ai_score}
+                        </Badge>
+                    </div>
+
+                    {/* Tags */}
+                    <div className="flex flex-wrap gap-1 mt-2">
+                        {lead.ai_tags.slice(0, 2).map((tag) => (
+                            <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                                {tag}
+                            </span>
+                        ))}
+                    </div>
+
+                    {/* Footer */}
+                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
+                        <UserAvatar
+                            name={getUserName(lead.assigned_to)}
+                            className="w-5 h-5 text-[9px]"
+                        />
+                        <span className="text-[10px] text-gray-400">
+                            {getRelativeTime(lead.updated_at)}
+                        </span>
+                    </div>
+                </CardContent>
+            </Card>
+        </div>
+    );
+}
+
+// ── Column Header Component ───────────────────────────────────────────────
+
+function ColumnHeader({ 
+    column, 
+    count, 
+    value, 
+    onUpdate, 
+    onDelete 
+}: { 
+    column: BoardColumn; 
+    count: number; 
+    value: number;
+    onUpdate: (title: string) => void;
+    onDelete: () => void;
+}) {
+    const [isEditing, setIsEditing] = useState(false);
+    const [title, setTitle] = useState(column.title);
+    const inputRef = useRef<HTMLInputElement>(null);
+
+    useEffect(() => {
+        if (isEditing) inputRef.current?.focus();
+    }, [isEditing]);
+
+    const handleSave = () => {
+        if (title.trim() && title !== column.title) {
+            onUpdate(title.trim());
+        }
+        setIsEditing(false);
+    };
+
+    return (
+        <div className="flex flex-col mb-3 px-1 group/header">
+            <div className="flex items-center gap-2">
+                <div className={`w-3 h-3 rounded-full ${column.color}`} />
+                {isEditing ? (
+                    <input
+                        ref={inputRef}
+                        value={title}
+                        onChange={(e) => setTitle(e.target.value)}
+                        onBlur={handleSave}
+                        onKeyDown={(e) => e.key === 'Enter' && handleSave()}
+                        className="text-sm font-semibold bg-white border border-blue-300 rounded px-1 outline-none w-full"
+                    />
+                ) : (
+                    <h3 
+                        className="text-sm font-semibold text-gray-900 cursor-text flex-1"
+                        onDoubleClick={() => setIsEditing(true)}
+                    >
+                        {column.title}
+                    </h3>
+                )}
+                
+                <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
+                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600">
+                        <Edit2 className="w-3 h-3" />
+                    </button>
+                    {column.id !== 'new' && column.id !== 'won' && (
+                        <button onClick={onDelete} className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600">
+                            <Trash2 className="w-3 h-3" />
+                        </button>
+                    )}
+                </div>
+            </div>
+            <div className="mt-1 flex items-center justify-between">
+                <span className="text-[11px] text-gray-400 font-medium">
+                    ({count}) · {value >= 1000 ? `฿${(value / 1000).toFixed(0)}K` : formatCurrency(value)}
+                </span>
+            </div>
+        </div>
+    );
+}
+
+// ── Main Page ─────────────────────────────────────────────────────────────
 
 export default function LeadBoardPage() {
     const router = useRouter();
-    const { leads, moveLeadToColumn, addActivity, updateLead } = useAppStore();
+    const { 
+        leads, boardColumns, moveLeadToColumn, addActivity, updateLead, 
+        addBoardColumn, updateBoardColumn, removeBoardColumn, activities,
+        tasks, toggleTask, convertLeadToCustomer
+    } = useAppStore();
+    
     const { showToast } = useToast();
+    
+    // UI States
     const [searchQuery, setSearchQuery] = useState('');
     const [showOnlyMine, setShowOnlyMine] = useState(false);
+    const [selectedLeadId, setSelectedLeadId] = useState<string | null>(null);
+    const [isAddingColumn, setIsAddingColumn] = useState(false);
+    const [newColumnTitle, setNewColumnTitle] = useState('');
+
     const [moveModal, setMoveModal] = useState<MoveModalState>({
         open: false, lead: null, fromColumn: null, toColumn: null,
     });
@@ -50,11 +204,9 @@ export default function LeadBoardPage() {
 
     const currentUserId = 'user-001';
 
-    // Filter leads for board (exclude lost/won that are converted)
+    // Filter leads
     const boardLeads = useMemo(() => {
-        let filtered = leads.filter(
-            (l) => l.board_status !== 'lost'
-        );
+        let filtered = leads;
         if (searchQuery) {
             const q = searchQuery.toLowerCase();
             filtered = filtered.filter((l) =>
@@ -67,16 +219,19 @@ export default function LeadBoardPage() {
         return filtered;
     }, [leads, searchQuery, showOnlyMine, currentUserId]);
 
-    // Group leads by column
-    const columnLeads = useMemo(() => {
-        const grouped: Record<string, Lead[]> = {};
-        BOARD_COLUMNS.forEach((col) => {
-            grouped[col.id] = boardLeads
-                .filter((l) => l.board_status === col.id)
-                .sort((a, b) => b.ai_score - a.ai_score);
+    // Group leads by column and calculate values
+    const columnData = useMemo(() => {
+        const data: Record<string, { leads: Lead[]; totalValue: number }> = {};
+        boardColumns.forEach((col) => {
+            const leadsInCol = boardLeads.filter((l) => l.board_status === col.id);
+            const totalValue = leadsInCol.reduce((sum, l) => sum + (l.ai_score * 5000), 0);
+            data[col.id] = {
+                leads: leadsInCol.sort((a, b) => b.ai_score - a.ai_score),
+                totalValue
+            };
         });
-        return grouped;
-    }, [boardLeads]);
+        return data;
+    }, [boardLeads, boardColumns]);
 
     const handleDragEnd = useCallback((result: DropResult) => {
         const { destination, source, draggableId } = result;
@@ -86,11 +241,10 @@ export default function LeadBoardPage() {
         const lead = leads.find((l) => l.id === draggableId);
         if (!lead) return;
 
-        const fromCol = source.droppableId as BoardStatus;
-        const toCol = destination.droppableId as BoardStatus;
+        const fromCol = source.droppableId;
+        const toCol = destination.droppableId;
 
         if (fromCol !== toCol) {
-            // Open modal for column change
             setMoveModal({ open: true, lead, fromColumn: fromCol, toColumn: toCol });
             setModalNote('');
             setModalActivityType('note');
@@ -102,20 +256,16 @@ export default function LeadBoardPage() {
     const handleConfirmMove = () => {
         if (!moveModal.lead || !moveModal.toColumn) return;
 
-        // Move the lead
         moveLeadToColumn(moveModal.lead.id, moveModal.toColumn);
 
-        // Update assignee if changed
         if (modalAssignee && modalAssignee !== moveModal.lead.assigned_to) {
             updateLead(moveModal.lead.id, { assigned_to: modalAssignee });
         }
 
-        // Update follow-up date
         if (modalFollowup) {
             updateLead(moveModal.lead.id, { next_followup_date: modalFollowup });
         }
 
-        // Add activity
         if (modalNote.trim()) {
             addActivity({
                 id: `act-${Date.now()}`,
@@ -131,9 +281,9 @@ export default function LeadBoardPage() {
             });
         }
 
-        // Always add a status_change activity
-        const fromLabel = BOARD_COLUMNS.find((c) => c.id === moveModal.fromColumn)?.title;
-        const toLabel = BOARD_COLUMNS.find((c) => c.id === moveModal.toColumn)?.title;
+        const fromLabel = boardColumns.find((c) => c.id === moveModal.fromColumn)?.title;
+        const toLabel = boardColumns.find((c) => c.id === moveModal.toColumn)?.title;
+        
         addActivity({
             id: `act-${Date.now() + 1}`,
             customer_id: '',
@@ -147,132 +297,314 @@ export default function LeadBoardPage() {
             updated_at: new Date().toISOString(),
         });
 
-        const leadName = moveModal.lead.business_name;
-        const fromCol = moveModal.fromColumn;
-        const leadId = moveModal.lead.id;
         setMoveModal({ open: false, lead: null, fromColumn: null, toColumn: null });
-
-        showToast(
-            `ย้าย "${leadName}" → ${toLabel}`,
-            fromCol ? () => moveLeadToColumn(leadId, fromCol) : undefined
-        );
+        showToast(`ย้าย "${moveModal.lead.business_name}" → ${toLabel}`);
     };
+
+    const handleAddColumn = () => {
+        if (!newColumnTitle.trim()) return;
+        const newCol: BoardColumn = {
+            id: `custom-${Date.now()}`,
+            title: newColumnTitle.trim(),
+            color: 'bg-indigo-500',
+            order: boardColumns.length
+        };
+        addBoardColumn(newCol);
+        setNewColumnTitle('');
+        setIsAddingColumn(false);
+    };
+
+    const selectedLead = useMemo(() => 
+        selectedLeadId ? (leads.find(l => l.id === selectedLeadId) ?? null) : null
+    , [selectedLeadId, leads]);
 
     const getUserName = (id: string) => mockUsers.find((u) => u.id === id)?.name || '';
 
+import { EmptyState } from '@/components/shared/EmptyState';
+import { Kanban, Filter } from 'lucide-react';
+
+// ... (existing code)
+
     return (
-        <div className="max-w-[1400px] mx-auto space-y-4">
-            {/* Filters */}
-            <div className="flex flex-col sm:flex-row gap-3 items-center">
-                <div className="relative flex-1">
-                    <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                    <Input
-                        placeholder="ค้นหาชื่อธุรกิจ..."
-                        value={searchQuery}
-                        onChange={(e) => setSearchQuery(e.target.value)}
-                        className="pl-9"
-                    />
+        <div className="max-w-[1600px] mx-auto space-y-4">
+            {/* Toolbar */}
+            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                <div className="flex items-center gap-3 flex-1 w-full">
+                    <div className="relative flex-1 max-w-sm">
+                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                        <Input
+                            placeholder="ค้นหาชื่อธุรกิจ..."
+                            value={searchQuery}
+                            onChange={(e) => setSearchQuery(e.target.value)}
+                            className="pl-9 h-9"
+                        />
+                    </div>
+                    <button
+                        onClick={() => setShowOnlyMine(!showOnlyMine)}
+                        className={`h-9 px-3 text-xs font-medium rounded-lg transition-colors flex items-center gap-2 ${showOnlyMine
+                            ? 'bg-blue-100 text-blue-700 border border-blue-200'
+                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                            }`}
+                    >
+                        <User className="w-3.5 h-3.5" />
+                        เฉพาะของฉัน
+                    </button>
                 </div>
-                <button
-                    onClick={() => setShowOnlyMine(!showOnlyMine)}
-                    className={`px-4 py-2 text-sm font-medium rounded-lg transition-colors flex items-center gap-2 ${showOnlyMine
-                        ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                        : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                        }`}
-                >
-                    <User className="w-4 h-4" />
-                    แสดงเฉพาะของฉัน
-                </button>
+                <div className="flex items-center gap-2">
+                    <Button size="sm" variant="outline" className="h-9">
+                        <Filter className="w-3.5 h-3.5 mr-2" /> ตัวกรอง
+                    </Button>
+                    <Button size="sm" className="h-9 bg-blue-600 hover:bg-blue-700">
+                        <Plus className="w-3.5 h-3.5 mr-2" /> ลีดใหม่
+                    </Button>
+                </div>
             </div>
 
-            {/* Board */}
-            <DragDropContext onDragEnd={handleDragEnd}>
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-                    {BOARD_COLUMNS.map((column) => (
-                        <div key={column.id} className="flex flex-col min-h-[500px]">
-                            {/* Column Header */}
-                            <div className="flex items-center gap-2 mb-3 px-1">
-                                <div className={`w-3 h-3 rounded-full ${column.color}`} />
-                                <h3 className="text-sm font-semibold text-gray-900">{column.title}</h3>
-                                <Badge variant="secondary" className="text-xs ml-auto">
-                                    {columnLeads[column.id]?.length || 0}
-                                </Badge>
+            {/* Board Content */}
+            {boardLeads.length === 0 && (searchQuery || showOnlyMine) ? (
+                <EmptyState
+                    icon={<Kanban className="h-6 w-6" />}
+                    title="ไม่พบลีดที่ตรงตามเงื่อนไข"
+                    description="ลองปรับคำค้นหา หรือปิดโหมด 'เฉพาะของฉัน'"
+                    actionLabel="ล้างการค้นหา"
+                    onAction={() => { setSearchQuery(''); setShowOnlyMine(false); }}
+                />
+            ) : (
+                <div className="relative overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
+                    <DragDropContext onDragEnd={handleDragEnd}>
+                        <div className="flex gap-4 min-w-max pb-4">
+                            {boardColumns.map((column) => (
+                                <div key={column.id} className="w-72 flex flex-col">
+                                    <ColumnHeader 
+                                        column={column} 
+                                        count={columnData[column.id]?.leads.length || 0}
+                                        value={columnData[column.id]?.totalValue || 0}
+                                        onUpdate={(title) => updateBoardColumn(column.id, { title })}
+                                        onDelete={() => removeBoardColumn(column.id)}
+                                    />
+
+                                    <Droppable droppableId={column.id}>
+                                        {(provided, snapshot) => (
+                                            <div
+                                                ref={provided.innerRef}
+                                                {...provided.droppableProps}
+                                                className={`flex-1 rounded-xl p-2 min-h-[500px] transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 border-2 border-dashed border-blue-200' : 'bg-gray-100/50'
+                                                    }`}
+                                            >
+                                                {columnData[column.id]?.leads.map((lead, index) => (
+                                                    <Draggable key={lead.id} draggableId={lead.id} index={index}>
+                                                        {(p, s) => (
+                                                            <LeadCard 
+                                                                lead={lead} 
+                                                                provided={p} 
+                                                                snapshot={s} 
+                                                                onClick={() => setSelectedLeadId(lead.id)}
+                                                            />
+                                                        )}
+                                                    </Draggable>
+                                                ))}
+                                                {provided.placeholder}
+                                            </div>
+                                        )}
+                                    </Droppable>
+                                </div>
+                            ))}
+
+                            {/* Add Column Button */}
+                            <div className="w-72 pt-12">
+                                {isAddingColumn ? (
+                                    <div className="bg-gray-100 rounded-xl p-3 border-2 border-blue-200">
+                                        <Input
+                                            value={newColumnTitle}
+                                            onChange={(e) => setNewColumnTitle(e.target.value)}
+                                            placeholder="ชื่อคอลัมน์..."
+                                            className="mb-2 h-8 text-sm"
+                                            autoFocus
+                                            onKeyDown={(e) => e.key === 'Enter' && handleAddColumn()}
+                                        />
+                                        <div className="flex gap-2">
+                                            <Button size="sm" onClick={handleAddColumn} className="flex-1 h-7 text-xs">เพิ่ม</Button>
+                                            <Button size="sm" variant="ghost" onClick={() => setIsAddingColumn(false)} className="h-7 text-xs">ยกเลิก</Button>
+                                        </div>
+                                    </div>
+                                ) : (
+                                    <button
+                                        onClick={() => setIsAddingColumn(true)}
+                                        className="w-full flex items-center justify-center gap-2 p-3 rounded-xl border-2 border-dashed border-gray-200 text-gray-400 hover:border-gray-300 hover:text-gray-500 transition-all text-sm font-medium"
+                                    >
+                                        <Plus className="w-4 h-4" />
+                                        เพิ่มคอลัมน์
+                                    </button>
+                                )}
+                            </div>
+                        </div>
+                    </DragDropContext>
+                </div>
+            )}
+
+            {/* ── SlideOverPanel: Lead Detail ─────────────────────────────────── */}
+            <SlideOverPanel
+                isOpen={!!selectedLead}
+                onClose={() => setSelectedLeadId(null)}
+                title={selectedLead?.business_name || ''}
+                width="lg"
+                footer={
+                    <div className="flex gap-2 w-full">
+                        {selectedLead?.board_status === 'won' ? (
+                            <Button 
+                                className="flex-1 bg-green-600 hover:bg-green-700"
+                                onClick={() => {
+                                    const custId = convertLeadToCustomer(selectedLead.id);
+                                    if (custId) {
+                                        showToast('แปลงเป็นลูกค้าแล้ว');
+                                        router.push(`/customers/${custId}`);
+                                    }
+                                }}
+                            >
+                                <Users className="w-4 h-4 mr-2" /> ดูข้อมูลลูกค้า
+                            </Button>
+                        ) : (
+                            <Button 
+                                className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                onClick={() => {
+                                    if (selectedLead) {
+                                        moveLeadToColumn(selectedLead.id, 'won');
+                                        showToast('ย้ายไปปิดการขายแล้ว');
+                                    }
+                                }}
+                            >
+                                <CheckCircle2 className="w-4 h-4 mr-2" /> ปิดการขาย
+                            </Button>
+                        )}
+                        <Button variant="outline" onClick={() => setSelectedLeadId(null)}>
+                            ปิด
+                        </Button>
+                    </div>
+                }
+            >
+                {selectedLead && (() => {
+                    const leadActivities = activities.filter(a => a.lead_id === selectedLead.id).sort((a, b) => b.created_at.localeCompare(a.created_at));
+                    const leadTasks = tasks.filter(t => t.customer_id === null && t.title.includes(selectedLead.business_name));
+                    
+                    return (
+                        <div className="space-y-6">
+                            {/* AI Score Breakdown */}
+                            <div className="bg-gradient-to-br from-blue-600 to-indigo-700 rounded-2xl p-5 text-white shadow-md">
+                                <div className="flex items-center justify-between mb-4">
+                                    <div>
+                                        <p className="text-blue-100 text-xs uppercase tracking-wider font-semibold">AI Match Score</p>
+                                        <h4 className="text-3xl font-bold mt-1">{selectedLead.ai_score}</h4>
+                                    </div>
+                                    <div className="w-12 h-12 rounded-full bg-white/20 flex items-center justify-center backdrop-blur-sm">
+                                        <Sparkles className="w-6 h-6 text-white" />
+                                    </div>
+                                </div>
+                                <div className="grid grid-cols-3 gap-2">
+                                    <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm border border-white/10">
+                                        <p className="text-[10px] text-blue-100 uppercase">Fit</p>
+                                        <p className="text-sm font-bold">{selectedLead.ai_score_fit}/40</p>
+                                    </div>
+                                    <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm border border-white/10">
+                                        <p className="text-[10px] text-blue-100 uppercase">Need</p>
+                                        <p className="text-sm font-bold">{selectedLead.ai_score_need}/30</p>
+                                    </div>
+                                    <div className="bg-white/10 rounded-lg p-2 backdrop-blur-sm border border-white/10">
+                                        <p className="text-[10px] text-blue-100 uppercase">Potential</p>
+                                        <p className="text-sm font-bold">{selectedLead.ai_score_potential}/30</p>
+                                    </div>
+                                </div>
                             </div>
 
-                            <Droppable droppableId={column.id}>
-                                {(provided, snapshot) => (
-                                    <div
-                                        ref={provided.innerRef}
-                                        {...provided.droppableProps}
-                                        className={`flex-1 rounded-lg p-2 space-y-2 transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50 border-2 border-dashed border-blue-200' : 'bg-gray-50'
-                                            }`}
-                                    >
-                                        {columnLeads[column.id]?.map((lead, index) => (
-                                            <Draggable key={lead.id} draggableId={lead.id} index={index}>
-                                                {(provided, snapshot) => (
-                                                    <div
-                                                        ref={provided.innerRef}
-                                                        {...provided.draggableProps}
-                                                        className={`group ${snapshot.isDragging ? 'rotate-2 shadow-lg' : ''}`}
-                                                    >
-                                                        <Card
-                                                            className="shadow-sm cursor-pointer hover:shadow-md transition-all"
-                                                            onClick={() => router.push(`/board/${lead.id}`)}
-                                                        >
-                                                            <CardContent className="p-3">
-                                                                <div className="flex items-start justify-between">
-                                                                    <div
-                                                                        {...provided.dragHandleProps}
-                                                                        className="mt-0.5 mr-1.5 text-gray-300 cursor-grab active:cursor-grabbing"
-                                                                    >
-                                                                        <GripVertical className="w-4 h-4" />
-                                                                    </div>
-                                                                    <div className="flex-1 min-w-0">
-                                                                        <h4 className="text-sm font-semibold text-gray-900 truncate">
-                                                                            {lead.business_name}
-                                                                        </h4>
-                                                                        <p className="text-[11px] text-gray-500 truncate mt-0.5">
-                                                                            {lead.industry}
-                                                                        </p>
-                                                                    </div>
-                                                                    <Badge className={`text-[10px] font-bold ml-1.5 flex-shrink-0 ${getScoreColor(lead.ai_score)}`}>
-                                                                        {lead.ai_score}
-                                                                    </Badge>
-                                                                </div>
-
-                                                                {/* Tags */}
-                                                                <div className="flex flex-wrap gap-1 mt-2">
-                                                                    {lead.ai_tags.slice(0, 2).map((tag) => (
-                                                                        <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
-                                                                            {tag}
-                                                                        </span>
-                                                                    ))}
-                                                                </div>
-
-                                                                {/* Footer */}
-                                                                <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
-                                                                    <UserAvatar
-                                                                        name={getUserName(lead.assigned_to)}
-                                                                        className="w-5 h-5 text-[9px]"
-                                                                    />
-                                                                    <span className="text-[10px] text-gray-400">
-                                                                        {getRelativeTime(lead.updated_at)}
-                                                                    </span>
-                                                                </div>
-                                                            </CardContent>
-                                                        </Card>
-                                                    </div>
-                                                )}
-                                            </Draggable>
-                                        ))}
-                                        {provided.placeholder}
+                            {/* Contact Info */}
+                            <div className="space-y-3">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                                    <Phone className="w-3.5 h-3.5" /> ข้อมูลติดต่อ
+                                </h4>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                                    {selectedLead.phone && (
+                                        <a href={`tel:${selectedLead.phone}`} className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
+                                            <Phone className="w-4 h-4 text-gray-400" /> {selectedLead.phone}
+                                        </a>
+                                    )}
+                                    {selectedLead.email && (
+                                        <a href={`mailto:${selectedLead.email}`} className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
+                                            <Mail className="w-4 h-4 text-gray-400" /> {selectedLead.email}
+                                        </a>
+                                    )}
+                                    {selectedLead.line_id && (
+                                        <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 text-sm text-gray-700">
+                                            <MessageCircle className="w-4 h-4 text-green-500" /> {selectedLead.line_id}
+                                        </div>
+                                    )}
+                                    {selectedLead.website_url && (
+                                        <a href={selectedLead.website_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
+                                            <Globe className="w-4 h-4 text-blue-500" /> เว็บไซต์ <ExternalLink className="w-3 h-3 ml-auto text-gray-300" />
+                                        </a>
+                                    )}
+                                </div>
+                                {selectedLead.address && (
+                                    <div className="flex items-start gap-2.5 p-2.5 rounded-lg border border-gray-100 text-sm text-gray-700">
+                                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" /> {selectedLead.address}
                                     </div>
                                 )}
-                            </Droppable>
+                            </div>
+
+                            {/* Google Info */}
+                            {(selectedLead.google_rating > 0) && (
+                                <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+                                    <div className="flex items-center gap-2">
+                                        <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="google" />
+                                        </div>
+                                        <div>
+                                            <p className="text-xs font-semibold text-gray-900">Google Rating</p>
+                                            <div className="flex items-center gap-1 mt-0.5">
+                                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                                <span className="text-sm font-bold">{selectedLead.google_rating}</span>
+                                                <span className="text-[10px] text-gray-400">({selectedLead.google_review_count} รีวิว)</span>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <button className="text-[10px] text-blue-600 font-medium hover:underline">ดูแผนที่</button>
+                                </div>
+                            )}
+
+                            {/* Activities Timeline */}
+                            <div className="space-y-3">
+                                <div className="flex items-center justify-between">
+                                    <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">กิจกรรมล่าสุด</h4>
+                                    <button className="text-xs text-blue-600 hover:underline">เพิ่มบันทึก</button>
+                                </div>
+                                <div className="space-y-3">
+                                    {leadActivities.length > 0 ? leadActivities.map((act) => {
+                                        const cfg = ACTIVITY_TYPE_CONFIG[act.type];
+                                        return (
+                                            <div key={act.id} className="flex gap-3 relative before:absolute before:left-2 before:top-6 before:bottom-0 before:w-px before:bg-gray-100 last:before:hidden">
+                                                <div className="shrink-0 mt-1 relative z-10">
+                                                    <div className={`w-4 h-4 rounded-full border-2 border-white flex items-center justify-center ${cfg?.color.replace('text-', 'bg-') || 'bg-gray-400'}`}>
+                                                        <Clock className="w-2.5 h-2.5 text-white" />
+                                                    </div>
+                                                </div>
+                                                <div className="flex-1 min-w-0 pb-3">
+                                                    <div className="flex items-center justify-between gap-2">
+                                                        <span className="text-xs font-bold text-gray-700 uppercase">{cfg?.label || act.type}</span>
+                                                        <span className="text-[10px] text-gray-400">{getRelativeTime(act.created_at)}</span>
+                                                    </div>
+                                                    <p className="text-sm text-gray-600 mt-1 leading-relaxed">{act.content}</p>
+                                                </div>
+                                            </div>
+                                        );
+                                    }) : (
+                                        <div className="text-center py-8 border-2 border-dashed border-gray-100 rounded-xl">
+                                            <p className="text-xs text-gray-400">ยังไม่มีกิจกรรมสำหรับลีดนี้</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
                         </div>
-                    ))}
-                </div>
-            </DragDropContext>
+                    );
+                })()}
+            </SlideOverPanel>
 
             {/* Move Modal */}
             <Dialog open={moveModal.open} onOpenChange={(open) => {
@@ -291,45 +623,48 @@ export default function LeadBoardPage() {
                     <div className="space-y-4 py-2">
                         <div className="flex items-center gap-2 text-sm text-gray-600">
                             <Badge variant="outline">
-                                {BOARD_COLUMNS.find((c) => c.id === moveModal.fromColumn)?.title}
+                                {boardColumns.find((c) => c.id === moveModal.fromColumn)?.title}
                             </Badge>
                             <ArrowRight className="w-4 h-4 text-gray-400" />
                             <Badge className="bg-blue-100 text-blue-700">
-                                {BOARD_COLUMNS.find((c) => c.id === moveModal.toColumn)?.title}
+                                {boardColumns.find((c) => c.id === moveModal.toColumn)?.title}
                             </Badge>
                         </div>
 
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ประเภทกิจกรรม</label>
-                            <select
-                                value={modalActivityType}
-                                onChange={(e) => setModalActivityType(e.target.value as ActivityType)}
-                                className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                        {moveModal.toColumn === 'won' && moveModal.lead?.converted_customer_id && (
+                            <Button 
+                                variant="outline" 
+                                className="w-full text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-2"
+                                onClick={() => router.push(`/documents?customer_id=${moveModal.lead?.converted_customer_id}&type=quotation`)}
                             >
-                                <option value="note">บันทึก</option>
-                                <option value="call">โทร</option>
-                                <option value="line">LINE</option>
-                                <option value="email">อีเมล</option>
-                                <option value="meeting">ประชุม</option>
-                            </select>
-                        </div>
+                                <FilePlus className="w-4 h-4" /> สร้างใบเสนอราคา
+                            </Button>
+                        )}
+
+                        {moveModal.toColumn === 'lost' && (
+                            <div className="bg-red-50 p-3 rounded-lg border border-red-100">
+                                <p className="text-xs font-semibold text-red-700 mb-1">ทำไมดีลนี้ถึงไม่สำเร็จ? *</p>
+                                <select 
+                                    className="w-full px-3 py-2 border rounded-lg text-sm bg-white border-red-200"
+                                    onChange={(e) => setModalNote(`[ไม่สำเร็จ] ${e.target.value}: ${modalNote}`)}
+                                >
+                                    <option value="">เลือกเหตุผล...</option>
+                                    <option value="ราคาแพงไป">ราคาแพงไป</option>
+                                    <option value="เลือกเจ้าอื่น">เลือกเจ้าอื่น</option>
+                                    <option value="ไม่มีงบประมาณ">ไม่มีงบประมาณ</option>
+                                    <option value="ติดต่อไม่ได้">ติดต่อไม่ได้</option>
+                                    <option value="ไม่ตรงความต้องการ">ไม่ตรงความต้องการ</option>
+                                </select>
+                            </div>
+                        )}
 
                         <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">บันทึก</label>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">บันทึกเพิ่มเติม</label>
                             <Textarea
                                 value={modalNote}
                                 onChange={(e) => setModalNote(e.target.value)}
-                                placeholder="เพิ่มบันทึกเกี่ยวกับการเปลี่ยนสถานะ..."
+                                placeholder="รายละเอียดประกอบการย้ายสถานะ..."
                                 rows={3}
-                            />
-                        </div>
-
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">วันติดตามถัดไป</label>
-                            <Input
-                                type="date"
-                                value={modalFollowup}
-                                onChange={(e) => setModalFollowup(e.target.value)}
                             />
                         </div>
 
