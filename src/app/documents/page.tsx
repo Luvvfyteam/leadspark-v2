@@ -62,9 +62,9 @@ export default function DocumentsPage() {
     }, [searchParams]);
 
     // ── Computed ────────────────────────────────────────────────────────────
-    const filtered = useMemo(() => 
+    const filtered = useMemo(() =>
         documents.filter((d) => d.type === tab).sort((a, b) => b.created_at.localeCompare(a.created_at))
-    , [documents, tab]);
+        , [documents, tab]);
 
     const quotations = documents.filter((d) => d.type === 'quotation');
     const invoices = documents.filter((d) => d.type === 'invoice');
@@ -175,17 +175,22 @@ export default function DocumentsPage() {
         <div className="max-w-6xl mx-auto space-y-6">
             {/* Header Area */}
             <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">การจัดการเอกสาร</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">ออกใบเสนอราคาและใบแจ้งหนี้ให้ลูกค้าได้ทันที</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">การจัดการเอกสาร</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">ออกใบเสนอราคาและใบแจ้งหนี้ให้ลูกค้าได้ทันที</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2">
                     {canExport && (
-                        <Button variant="outline" size="sm" onClick={() => showToast('Exporting...')}>
+                        <Button variant="outline" size="sm" onClick={() => showToast('Exporting...')} className="rounded-xl">
                             <Download className="w-4 h-4 mr-2" /> Export
                         </Button>
                     )}
-                    <Button onClick={() => { resetWizard(); setShowWizard(true); }} className="bg-blue-600 hover:bg-blue-700">
+                    <Button onClick={() => { resetWizard(); setShowWizard(true); }} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">
                         <Plus className="w-4 h-4 mr-2" /> สร้างเอกสารใหม่
                     </Button>
                 </div>
@@ -208,7 +213,7 @@ export default function DocumentsPage() {
             </div>
 
             {/* List Table */}
-            <Card className="shadow-sm overflow-hidden border-gray-200">
+            <Card className="shadow-sm overflow-hidden border-gray-100 rounded-xl">
                 <div className="overflow-x-auto">
                     <table className="w-full text-left border-collapse">
                         <thead>
@@ -284,8 +289,8 @@ export default function DocumentsPage() {
                 width="xl"
                 footer={
                     <div className="flex justify-between w-full">
-                        <Button 
-                            variant="ghost" 
+                        <Button
+                            variant="ghost"
                             onClick={() => setWizardStep(prev => Math.max(1, prev - 1))}
                             disabled={wizardStep === 1}
                             className="gap-2"
@@ -293,7 +298,7 @@ export default function DocumentsPage() {
                             <ChevronLeft className="w-4 h-4" /> ย้อนกลับ
                         </Button>
                         {wizardStep < 5 ? (
-                            <Button 
+                            <Button
                                 onClick={() => setWizardStep(prev => prev + 1)}
                                 disabled={(wizardStep === 2 && !selectedCustId) || (wizardStep === 3 && items[0].name === '')}
                                 className="bg-blue-600 hover:bg-blue-700 gap-2"
@@ -314,7 +319,7 @@ export default function DocumentsPage() {
                 {/* Step 1: Type */}
                 {wizardStep === 1 && (
                     <div className="grid grid-cols-2 gap-6 pt-10">
-                        <button 
+                        <button
                             onClick={() => { setCreateType('quotation'); setWizardStep(2); }}
                             className={`flex flex-col items-center gap-4 p-8 rounded-2xl border-2 transition-all ${createType === 'quotation' ? 'border-blue-600 bg-blue-50' : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'}`}
                         >
@@ -326,7 +331,7 @@ export default function DocumentsPage() {
                                 <p className="text-xs text-gray-500 mt-1 leading-relaxed">เสนอราคาและขอบเขตงานให้ลูกค้าพิจารณา</p>
                             </div>
                         </button>
-                        <button 
+                        <button
                             onClick={() => { setCreateType('invoice'); setWizardStep(2); }}
                             className={`flex flex-col items-center gap-4 p-8 rounded-2xl border-2 transition-all ${createType === 'invoice' ? 'border-blue-600 bg-blue-50' : 'border-gray-100 hover:border-blue-200 hover:bg-gray-50'}`}
                         >
@@ -370,18 +375,18 @@ export default function DocumentsPage() {
                         ) : (
                             <div className="relative">
                                 <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                                <Input 
-                                    value={custSearch} 
+                                <Input
+                                    value={custSearch}
                                     onChange={(e) => setCustSearch(e.target.value)}
-                                    placeholder="พิมพ์ชื่อลูกค้า..." 
+                                    placeholder="พิมพ์ชื่อลูกค้า..."
                                     className="pl-12 h-12 text-base rounded-xl"
                                     autoFocus
                                 />
                                 {custSearch && (
                                     <div className="absolute top-full left-0 right-0 mt-2 bg-white border border-gray-100 rounded-xl shadow-xl overflow-hidden z-10 animate-in fade-in-0 zoom-in-95">
                                         {customers.filter(c => c.business_name.toLowerCase().includes(custSearch.toLowerCase())).slice(0, 5).map(c => (
-                                            <button 
-                                                key={c.id} 
+                                            <button
+                                                key={c.id}
                                                 onClick={() => { setSelectedCustId(c.id); setCustSearch(''); }}
                                                 className="w-full flex items-center gap-3 px-4 py-3 hover:bg-blue-50 transition-colors border-b last:border-0"
                                             >
@@ -398,14 +403,14 @@ export default function DocumentsPage() {
                                 )}
                             </div>
                         )}
-                        
+
                         {!selectedCustId && (
                             <div className="space-y-3">
                                 <p className="text-xs font-semibold text-gray-400 uppercase tracking-wider">ลูกค้าล่าสุด</p>
                                 <div className="grid grid-cols-2 gap-3">
                                     {customers.slice(0, 4).map(c => (
-                                        <button 
-                                            key={c.id} 
+                                        <button
+                                            key={c.id}
                                             onClick={() => setSelectedCustId(c.id)}
                                             className="flex items-center gap-3 p-3 rounded-xl border border-gray-100 hover:border-blue-200 hover:bg-gray-50 transition-all text-left"
                                         >
@@ -426,7 +431,7 @@ export default function DocumentsPage() {
                     <div className="space-y-6">
                         <div className="flex items-center justify-between">
                             <h4 className="text-sm font-bold text-gray-900">รายการบริการ / สินค้า</h4>
-                            <button 
+                            <button
                                 onClick={() => setItems(prev => [...prev, { name: '', description: '', quantity: 1, unit_price: 0, total: 0 }])}
                                 className="text-xs text-blue-600 font-bold flex items-center gap-1 hover:underline"
                             >
@@ -437,7 +442,7 @@ export default function DocumentsPage() {
                         <div className="space-y-3">
                             {items.map((item, idx) => (
                                 <div key={idx} className="group relative bg-gray-50 rounded-xl p-4 border border-gray-100">
-                                    <button 
+                                    <button
                                         onClick={() => items.length > 1 && setItems(prev => prev.filter((_, i) => i !== idx))}
                                         className="absolute -right-2 -top-2 w-6 h-6 rounded-full bg-white border shadow-sm flex items-center justify-center text-gray-400 hover:text-red-500 opacity-0 group-hover:opacity-100 transition-opacity"
                                     >
@@ -445,32 +450,32 @@ export default function DocumentsPage() {
                                     </button>
                                     <div className="grid grid-cols-12 gap-3">
                                         <div className="col-span-12 sm:col-span-7">
-                                            <Input 
-                                                value={item.name} 
+                                            <Input
+                                                value={item.name}
                                                 onChange={(e) => {
                                                     const newItems = [...items];
                                                     newItems[idx].name = e.target.value;
                                                     setItems(newItems);
                                                 }}
-                                                placeholder="ชื่อรายการสินค้าหรือบริการ..." 
+                                                placeholder="ชื่อรายการสินค้าหรือบริการ..."
                                                 className="bg-white"
                                             />
-                                            <Input 
-                                                value={item.description} 
+                                            <Input
+                                                value={item.description}
                                                 onChange={(e) => {
                                                     const newItems = [...items];
                                                     newItems[idx].description = e.target.value;
                                                     setItems(newItems);
                                                 }}
-                                                placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)" 
+                                                placeholder="รายละเอียดเพิ่มเติม (ไม่บังคับ)"
                                                 className="mt-2 text-xs bg-white/50"
                                             />
                                         </div>
                                         <div className="col-span-4 sm:col-span-2">
                                             <p className="text-[10px] text-gray-400 uppercase mb-1">จำนวน</p>
-                                            <Input 
-                                                type="number" 
-                                                value={item.quantity} 
+                                            <Input
+                                                type="number"
+                                                value={item.quantity}
                                                 onChange={(e) => {
                                                     const newItems = [...items];
                                                     newItems[idx].quantity = Number(e.target.value);
@@ -482,9 +487,9 @@ export default function DocumentsPage() {
                                         </div>
                                         <div className="col-span-8 sm:col-span-3">
                                             <p className="text-[10px] text-gray-400 uppercase mb-1 text-right">ราคาต่อหน่วย</p>
-                                            <Input 
-                                                type="number" 
-                                                value={item.unit_price} 
+                                            <Input
+                                                type="number"
+                                                value={item.unit_price}
                                                 onChange={(e) => {
                                                     const newItems = [...items];
                                                     newItems[idx].unit_price = Number(e.target.value);
@@ -503,8 +508,8 @@ export default function DocumentsPage() {
                             <p className="text-xs font-semibold text-gray-500 uppercase tracking-wider">เลือกจากบริการแนะนำ</p>
                             <div className="flex flex-wrap gap-2">
                                 {services.filter(s => s.is_active).map(s => (
-                                    <button 
-                                        key={s.id} 
+                                    <button
+                                        key={s.id}
                                         onClick={() => {
                                             const newItem = { name: s.name, description: s.description, quantity: 1, unit_price: s.price, total: s.price };
                                             if (items.length === 1 && items[0].name === '') {
@@ -532,20 +537,20 @@ export default function DocumentsPage() {
                                 <span className="text-gray-400">ราคารวม ({items.length} รายการ)</span>
                                 <span className="font-semibold">{formatCurrency(subtotal)}</span>
                             </div>
-                            
+
                             <div className="flex items-center justify-between mb-6">
                                 <div className="flex items-center gap-2">
                                     <span className="text-gray-400">ส่วนลด</span>
-                                    <select 
-                                        value={discountType} 
+                                    <select
+                                        value={discountType}
                                         onChange={(e) => setDiscountType(e.target.value as DiscountType)}
                                         className="bg-white/10 border-none rounded text-xs px-2 py-1 outline-none"
                                     >
                                         <option value="fixed" className="text-black">฿</option>
                                         <option value="percentage" className="text-black">%</option>
                                     </select>
-                                    <input 
-                                        type="number" 
+                                    <input
+                                        type="number"
                                         value={discountValue}
                                         onChange={(e) => setDiscountValue(Number(e.target.value))}
                                         className="w-16 bg-transparent border-b border-white/20 text-right focus:border-blue-400 outline-none text-sm font-bold"
@@ -568,10 +573,10 @@ export default function DocumentsPage() {
                                         <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
                                             <Calendar className="w-3.5 h-3.5" /> อายุเอกสาร (วัน)
                                         </label>
-                                        <Input 
-                                            type="number" 
-                                            value={validDays} 
-                                            onChange={(e) => setValidDays(Number(e.target.value))} 
+                                        <Input
+                                            type="number"
+                                            value={validDays}
+                                            onChange={(e) => setValidDays(Number(e.target.value))}
                                             className="h-11 rounded-xl"
                                         />
                                     </div>
@@ -580,10 +585,10 @@ export default function DocumentsPage() {
                                         <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
                                             <Calendar className="w-3.5 h-3.5" /> วันครบกำหนดชำระ
                                         </label>
-                                        <Input 
-                                            type="date" 
-                                            value={dueDate} 
-                                            onChange={(e) => setDueDate(e.target.value)} 
+                                        <Input
+                                            type="date"
+                                            value={dueDate}
+                                            onChange={(e) => setDueDate(e.target.value)}
                                             className="h-11 rounded-xl"
                                         />
                                     </div>
@@ -592,8 +597,8 @@ export default function DocumentsPage() {
                                     <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
                                         <CreditCard className="w-3.5 h-3.5" /> วิธีชำระเงิน
                                     </label>
-                                    <select 
-                                        value={paymentMethod} 
+                                    <select
+                                        value={paymentMethod}
                                         onChange={(e) => setPaymentMethod(e.target.value)}
                                         className="flex h-11 w-full rounded-xl border border-input bg-background px-3 py-2 text-sm"
                                     >
@@ -609,8 +614,8 @@ export default function DocumentsPage() {
                                 <label className="text-xs font-bold text-gray-500 uppercase flex items-center gap-1.5">
                                     <Info className="w-3.5 h-3.5" /> เงื่อนไขเพิ่มเติม
                                 </label>
-                                <textarea 
-                                    value={terms} 
+                                <textarea
+                                    value={terms}
                                     onChange={(e) => setTerms(e.target.value)}
                                     rows={3}
                                     className="flex w-full rounded-xl border border-input bg-background px-4 py-3 text-sm resize-none focus:ring-2 focus:ring-blue-500 outline-none"
@@ -764,141 +769,6 @@ export default function DocumentsPage() {
                                     <div className="text-center">
                                         <div className="w-48 border-b border-gray-300 h-10"></div>
                                         <p className="text-[10px] text-gray-400 mt-2 font-bold uppercase tracking-widest">ผู้อนุมัติ</p>
-                                    </div>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-            {/* Document Preview Modal */}
-            {previewDoc && (
-                <div className="fixed inset-0 z-[60] flex items-start justify-center bg-black/50 pt-6 overflow-y-auto" onClick={() => setPreviewDoc(null)}>
-                    <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-xl shadow-2xl w-full max-w-2xl mx-4 mb-10" id="doc-preview">
-                        {/* Preview Actions Bar */}
-                        <div className="flex items-center justify-between px-6 py-3 border-b bg-gray-50 rounded-t-xl">
-                            <div className="flex gap-2">
-                                <Button size="sm" variant="outline" onClick={() => {
-                                    const printContent = document.getElementById('doc-preview-content');
-                                    if (!printContent) return;
-                                    const win = window.open('', '_blank');
-                                    if (!win) return;
-                                    win.document.write(`<html><head><title>${previewDoc.document_number}</title><style>body{font-family:system-ui,sans-serif;padding:40px;color:#333}table{width:100%;border-collapse:collapse;margin:20px 0}th,td{border:1px solid #ddd;padding:8px 12px;text-align:left;font-size:13px}th{background:#f6f6f6;font-weight:600}.text-right{text-align:right}.mt-4{margin-top:16px}.text-sm{font-size:13px}.font-bold{font-weight:700}.text-gray{color:#666}.header{border-bottom:2px solid #2563eb;padding-bottom:16px;margin-bottom:20px}.sig{margin-top:60px;display:flex;justify-content:space-between}.sig-line{width:200px;border-top:1px solid #999;padding-top:8px;text-align:center;font-size:12px;color:#666}@media print{body{padding:20px}}</style></head><body>${printContent.innerHTML}</body></html>`);
-                                    win.document.close();
-                                    win.print();
-                                }} className="gap-1">
-                                    <Printer className="w-3.5 h-3.5" /> Export PDF
-                                </Button>
-                            </div>
-                            <button onClick={() => setPreviewDoc(null)} className="p-1.5 hover:bg-gray-200 rounded-lg"><X className="w-4 h-4" /></button>
-                        </div>
-
-                        {/* Preview Content */}
-                        <div id="doc-preview-content" className="p-8 space-y-6">
-                            {/* Company Header */}
-                            <div className="header" style={{ borderBottom: '2px solid #2563eb', paddingBottom: '16px' }}>
-                                <div className="flex items-start justify-between">
-                                    <div>
-                                        <h1 className="text-xl font-bold text-blue-600">LeadSpark Co., Ltd.</h1>
-                                        <p className="text-xs text-gray-500 mt-1">123 ถนนสุขุมวิท แขวงคลองเตย เขตคลองเตย กรุงเทพฯ 10110</p>
-                                        <p className="text-xs text-gray-500">โทร: 02-123-4567 · อีเมล: info@leadspark.co.th</p>
-                                    </div>
-                                    <div className="text-right">
-                                        <span className="text-lg font-bold text-gray-800">
-                                            {previewDoc.type === 'quotation' ? 'ใบเสนอราคา' : 'ใบแจ้งหนี้'}
-                                        </span>
-                                        <p className="text-sm font-mono text-blue-600 mt-1">{previewDoc.document_number}</p>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Document Info */}
-                            <div className="grid grid-cols-2 gap-4 text-sm">
-                                <div>
-                                    <p className="text-xs text-gray-400 uppercase mb-1">ลูกค้า</p>
-                                    <p className="font-medium text-gray-800">{customers.find((c) => c.id === previewDoc.customer_id)?.business_name || '-'}</p>
-                                </div>
-                                <div className="text-right">
-                                    <p className="text-xs text-gray-400 uppercase mb-1">วันที่</p>
-                                    <p className="text-gray-700">{new Date(previewDoc.created_at).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    {previewDoc.valid_until && (
-                                        <p className="text-xs text-gray-500 mt-0.5">หมดอายุ: {new Date(previewDoc.valid_until).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    )}
-                                    {previewDoc.due_date && (
-                                        <p className="text-xs text-gray-500 mt-0.5">ครบกำหนด: {new Date(previewDoc.due_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'long', year: 'numeric' })}</p>
-                                    )}
-                                </div>
-                            </div>
-
-                            {/* Items Table */}
-                            <table className="w-full text-sm border-collapse">
-                                <thead>
-                                    <tr className="bg-gray-50">
-                                        <th className="border border-gray-200 px-3 py-2 text-left w-10">ลำดับ</th>
-                                        <th className="border border-gray-200 px-3 py-2 text-left">รายการ</th>
-                                        <th className="border border-gray-200 px-3 py-2 text-right w-16">จำนวน</th>
-                                        <th className="border border-gray-200 px-3 py-2 text-right w-28">ราคาต่อหน่วย</th>
-                                        <th className="border border-gray-200 px-3 py-2 text-right w-28">รวม</th>
-                                    </tr>
-                                </thead>
-                                <tbody>
-                                    {previewDoc.items.map((item, idx) => (
-                                        <tr key={idx} className="hover:bg-gray-50/50">
-                                            <td className="border border-gray-200 px-3 py-2 text-center text-gray-500">{idx + 1}</td>
-                                            <td className="border border-gray-200 px-3 py-2">
-                                                <span className="font-medium">{item.name}</span>
-                                                {item.description && <span className="text-xs text-gray-400 ml-1">({item.description})</span>}
-                                            </td>
-                                            <td className="border border-gray-200 px-3 py-2 text-right">{item.quantity}</td>
-                                            <td className="border border-gray-200 px-3 py-2 text-right">{formatCurrency(item.unit_price)}</td>
-                                            <td className="border border-gray-200 px-3 py-2 text-right font-medium">{formatCurrency(item.total)}</td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-
-                            {/* Totals */}
-                            <div className="flex justify-end">
-                                <div className="w-64 space-y-1.5">
-                                    <div className="flex justify-between text-sm">
-                                        <span className="text-gray-500">ราคารวม</span>
-                                        <span>{formatCurrency(previewDoc.subtotal)}</span>
-                                    </div>
-                                    {previewDoc.discount_value > 0 && (
-                                        <div className="flex justify-between text-sm text-red-500">
-                                            <span>ส่วนลด ({previewDoc.discount_type === 'percentage' ? `${previewDoc.discount_value}%` : `฿${previewDoc.discount_value}`})</span>
-                                            <span>-{formatCurrency(previewDoc.subtotal - previewDoc.total)}</span>
-                                        </div>
-                                    )}
-                                    <div className="flex justify-between font-bold text-base border-t pt-2">
-                                        <span>ยอดรวมทั้งสิ้น</span>
-                                        <span className="text-blue-600">{formatCurrency(previewDoc.total)}</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {/* Terms */}
-                            {previewDoc.terms && (
-                                <div className="text-sm">
-                                    <p className="text-xs text-gray-400 uppercase mb-1">เงื่อนไข</p>
-                                    <p className="text-gray-600">{previewDoc.terms}</p>
-                                </div>
-                            )}
-
-                            {/* Signature */}
-                            <div className="flex justify-between mt-12 pt-4">
-                                <div className="text-center">
-                                    <div className="w-48 border-t border-gray-300 pt-2">
-                                        <p className="text-xs text-gray-500">ผู้เสนอราคา / ผู้ออกเอกสาร</p>
-                                    </div>
-                                </div>
-                                <div className="text-center">
-                                    <div className="w-48 border-t border-gray-300 pt-2">
-                                        <p className="text-xs text-gray-500">ผู้อนุมัติ / ลูกค้า</p>
                                     </div>
                                 </div>
                             </div>

@@ -15,7 +15,7 @@ import {
     Save, CheckCircle, Plus, Trash2, Edit2, X, UserPlus,
     Mail, Phone, CreditCard, FileText, ChevronLeft, ChevronRight,
     Link as LinkIcon, Download, Upload, Zap, Shield, HelpCircle,
-    Smartphone, MessageSquare, Globe, Banknote, Calendar
+    Smartphone, MessageSquare, Globe, Banknote, Calendar, Settings2
 } from 'lucide-react';
 
 const tabs = [
@@ -53,7 +53,7 @@ export default function SettingsPage() {
     const [showInviteModal, setShowInviteModal] = useState(false);
     const [inviteEmail, setInviteEmail] = useState('');
     const [inviteRole, setInviteRole] = useState<UserRole>('member');
-    const [pendingInvites, setPendingInvites] = useState<{email: string, role: string}[]>([]);
+    const [pendingInvites, setPendingInvites] = useState<{ email: string, role: string }[]>([]);
 
     // Business Profile fields
     const [businessName, setBusinessName] = useState('บริษัทรับทำเว็บและการตลาดดิจิทัล');
@@ -111,9 +111,14 @@ export default function SettingsPage() {
     return (
         <div className="max-w-6xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-black text-gray-900">การตั้งค่า</h1>
-                    <p className="text-sm text-gray-500">จัดการข้อมูลทีม, ระบบ และปรับแต่ง AI ให้เข้ากับธุรกิจของคุณ</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <Settings2 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">การตั้งค่า</h1>
+                        <p className="text-sm text-gray-500">จัดการข้อมูลทีม, ระบบ และปรับแต่ง AI ให้เข้ากับธุรกิจของคุณ</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-2 px-3 py-1.5 bg-blue-50 rounded-full border border-blue-100">
                     <Zap className="w-3.5 h-3.5 text-blue-600" />
@@ -140,7 +145,7 @@ export default function SettingsPage() {
                                 </button>
                             ))}
                         </nav>
-                        
+
                         <Card className="mt-8 bg-gray-900 text-white border-none rounded-2xl overflow-hidden shadow-xl">
                             <CardContent className="p-5">
                                 <div className="flex items-center gap-2 mb-3">
@@ -226,7 +231,7 @@ export default function SettingsPage() {
                                     <p className="text-[10px] font-black text-gray-400 uppercase tracking-widest pl-1">Invoice Header Preview</p>
                                     <div className="bg-white border-2 border-blue-50 rounded-2xl p-6 shadow-sm overflow-hidden relative">
                                         <div className="absolute top-0 right-0 w-24 h-24 bg-blue-50/50 rounded-bl-[100px] -mr-8 -mt-8" />
-                                        
+
                                         <div className="flex justify-between items-start mb-8 relative z-10">
                                             <div className="w-10 h-10 bg-blue-600 rounded-lg flex items-center justify-center text-white font-black italic">LS</div>
                                             <div className="text-right">
@@ -302,7 +307,7 @@ export default function SettingsPage() {
                                                 </div>
                                             </div>
                                         ))}
-                                        
+
                                         {/* Pending Invites */}
                                         {pendingInvites.map((inv) => (
                                             <div key={inv.email} className="flex items-center justify-between px-6 py-4 bg-gray-50/50 border-l-4 border-amber-400">
@@ -321,7 +326,7 @@ export default function SettingsPage() {
                                                     <Badge variant="outline" className="text-[10px] font-bold uppercase tracking-wider h-6 rounded-lg border-gray-200">
                                                         {inv.role}
                                                     </Badge>
-                                                    <button 
+                                                    <button
                                                         onClick={() => setPendingInvites(pendingInvites.filter(i => i.email !== inv.email))}
                                                         className="text-xs font-bold text-red-500 hover:underline px-2"
                                                     >
@@ -496,7 +501,7 @@ export default function SettingsPage() {
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-tighter">ต่อเดือน (รายปี)</p>
                                         </div>
                                     </div>
-                                    
+
                                     <div className="grid grid-cols-1 md:grid-cols-3 gap-6 pt-8 border-t border-white/10">
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">ลูกค้า</p>
@@ -504,7 +509,7 @@ export default function SettingsPage() {
                                                 <p className="text-xl font-bold">1,240</p>
                                                 <p className="text-[10px] text-gray-500 pb-1">/ 5,000</p>
                                             </div>
-                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-blue-500 h-1.5 rounded-full" style={{width: '25%'}} /></div>
+                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-blue-500 h-1.5 rounded-full" style={{ width: '25%' }} /></div>
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">ทีมงาน</p>
@@ -512,7 +517,7 @@ export default function SettingsPage() {
                                                 <p className="text-xl font-bold">5</p>
                                                 <p className="text-[10px] text-gray-500 pb-1">/ 10</p>
                                             </div>
-                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-green-500 h-1.5 rounded-full" style={{width: '50%'}} /></div>
+                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-green-500 h-1.5 rounded-full" style={{ width: '50%' }} /></div>
                                         </div>
                                         <div>
                                             <p className="text-[10px] font-bold text-gray-400 uppercase tracking-widest mb-2">AI Search</p>
@@ -520,7 +525,7 @@ export default function SettingsPage() {
                                                 <p className="text-xl font-bold">850</p>
                                                 <p className="text-[10px] text-gray-500 pb-1">/ ไม่จำกัด</p>
                                             </div>
-                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-purple-500 h-1.5 rounded-full" style={{width: '100%'}} /></div>
+                                            <div className="w-full bg-white/10 h-1.5 rounded-full mt-2"><div className="bg-purple-500 h-1.5 rounded-full" style={{ width: '100%' }} /></div>
                                         </div>
                                     </div>
                                 </CardContent>
@@ -564,7 +569,7 @@ export default function SettingsPage() {
 
                     {/* Business Profile, Services, Goals tabs remain visible but with improved styling logic... */}
                     {/* (Omitted for brevity in this tool call, but would be fully styled in final implementation) */}
-                    
+
                 </div>
             </div>
 
@@ -586,18 +591,18 @@ export default function SettingsPage() {
                             <div className="space-y-4">
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">อีเมลสมาชิกใหม่</label>
-                                    <Input 
+                                    <Input
                                         autoFocus
-                                        value={inviteEmail} 
-                                        onChange={(e) => setInviteEmail(e.target.value)} 
-                                        placeholder="name@example.com" 
+                                        value={inviteEmail}
+                                        onChange={(e) => setInviteEmail(e.target.value)}
+                                        placeholder="name@example.com"
                                         className="h-12 rounded-xl text-base font-medium"
                                     />
                                 </div>
                                 <div className="space-y-1.5">
                                     <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest">บทบาท (Role)</label>
-                                    <select 
-                                        value={inviteRole} 
+                                    <select
+                                        value={inviteRole}
                                         onChange={(e) => setInviteRole(e.target.value as UserRole)}
                                         className="w-full h-12 rounded-xl border-2 border-gray-100 px-4 text-sm font-bold text-gray-700 bg-gray-50 focus:bg-white focus:border-blue-400 outline-none transition-all appearance-none cursor-pointer"
                                     >
@@ -647,41 +652,6 @@ export default function SettingsPage() {
                             <Button variant="ghost" onClick={() => setShowServiceForm(false)} className="flex-1 h-12 rounded-2xl font-bold">ยกเลิก</Button>
                             <Button onClick={handleSaveService} disabled={!svcName.trim()} className="flex-1 h-12 bg-blue-600 hover:bg-blue-700 text-white font-black rounded-2xl shadow-lg shadow-blue-100">
                                 {editServiceId ? 'บันทึก' : 'เพิ่มบริการ'}
-                            </Button>
-                        </div>
-                    </div>
-                </div>
-            )}
-        </div>
-    );
-}
-
-import { BarChart3 } from 'lucide-react';
-
-            {/* Service Add/Edit Modal */}
-            {showServiceForm && (
-                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40" onClick={() => setShowServiceForm(false)}>
-                    <div onClick={(e) => e.stopPropagation()} className="bg-white rounded-xl shadow-2xl w-full max-w-md mx-4 p-6 space-y-4">
-                        <div className="flex items-center justify-between">
-                            <h2 className="text-lg font-semibold">{editServiceId ? 'แก้ไขบริการ' : 'เพิ่มบริการใหม่'}</h2>
-                            <button onClick={() => setShowServiceForm(false)} className="p-1 hover:bg-gray-100 rounded"><X className="w-4 h-4" /></button>
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ชื่อบริการ *</label>
-                            <Input value={svcName} onChange={(e) => setSvcName(e.target.value)} placeholder="เช่น: ออกแบบเว็บไซต์" />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">รายละเอียด</label>
-                            <Textarea value={svcDesc} onChange={(e) => setSvcDesc(e.target.value)} placeholder="รายละเอียดบริการ..." rows={3} />
-                        </div>
-                        <div>
-                            <label className="block text-sm font-medium text-gray-700 mb-1">ราคา (บาท)</label>
-                            <Input type="number" value={svcPrice} onChange={(e) => setSvcPrice(Number(e.target.value))} min={0} />
-                        </div>
-                        <div className="flex justify-end gap-2 pt-2">
-                            <Button variant="outline" onClick={() => setShowServiceForm(false)}>ยกเลิก</Button>
-                            <Button onClick={handleSaveService} disabled={!svcName.trim()} className="bg-blue-600 hover:bg-blue-700">
-                                {editServiceId ? 'บันทึก' : <><Plus className="w-4 h-4 mr-1" /> เพิ่ม</>}
                             </Button>
                         </div>
                     </div>

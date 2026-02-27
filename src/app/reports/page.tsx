@@ -77,7 +77,7 @@ export default function ReportsPage() {
     const lastMonth = '2026-01';
 
     // ── Data Processing ────────────────────────────────────────────────────
-    
+
     // Revenue Data
     const revenueData = useMemo(() => {
         const months: { month: string; revenue: number; goal: number; raw: string }[] = [];
@@ -95,7 +95,7 @@ export default function ReportsPage() {
     const scorecardData = useMemo(() => {
         const currentRevenue = payments.filter(p => p.payment_date.startsWith(thisMonth)).reduce((s, p) => s + p.amount, 0);
         const prevRevenue = payments.filter(p => p.payment_date.startsWith(lastMonth)).reduce((s, p) => s + p.amount, 0);
-        
+
         const currentDeals = deals.filter(d => d.status === 'completed' && d.created_at.startsWith(thisMonth)).length;
         const prevDeals = deals.filter(d => d.status === 'completed' && d.created_at.startsWith(lastMonth)).length;
 
@@ -149,9 +149,14 @@ export default function ReportsPage() {
         <div className="max-w-7xl mx-auto space-y-6">
             {/* Header + Date Range */}
             <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">สรุปผลการดำเนินงาน</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">วิเคราะห์ข้อมูลรายรับ และประสิทธิภาพของทีม</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <BarChart3 className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">สรุปผลการดำเนินงาน</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">วิเคราะห์ข้อมูลรายรับ และประสิทธิภาพของทีม</p>
+                    </div>
                 </div>
                 <div className="flex items-center gap-1.5 bg-gray-100 p-1.5 rounded-xl self-start">
                     {(['thisWeek', 'thisMonth', 'thisQuarter'] as const).map((r) => (
@@ -250,8 +255,8 @@ export default function ReportsPage() {
                     <CardContent>
                         <div className="h-72">
                             <ResponsiveContainer width="100%" height="100%">
-                                <BarChart 
-                                    data={revenueData} 
+                                <BarChart
+                                    data={revenueData}
                                     margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
                                     onClick={(data) => {
                                         if (data && data.activePayload) {
@@ -263,7 +268,7 @@ export default function ReportsPage() {
                                     <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
                                     <XAxis dataKey="month" tick={{ fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} />
                                     <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 11, fontWeight: 500 }} axisLine={false} tickLine={false} />
-                                    <Tooltip 
+                                    <Tooltip
                                         cursor={{ fill: '#f8fafc' }}
                                         content={({ active, payload }) => {
                                             if (active && payload && payload.length) {
@@ -285,7 +290,7 @@ export default function ReportsPage() {
                                                 );
                                             }
                                             return null;
-                                        }} 
+                                        }}
                                     />
                                     <Bar dataKey="goal" fill="#e2e8f0" radius={[4, 4, 0, 0]} name="เป้าหมาย" />
                                     <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} name="รายรับจริง" />
@@ -399,190 +404,6 @@ export default function ReportsPage() {
                     )}
                 </div>
             </SlideOverPanel>
-        </div>
-    );
-}
-
-            {/* Revenue Overview */}
-            <Card className="shadow-sm">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <BarChart3 className="w-4 h-4 text-blue-500" />
-                        รายรับ vs เป้าหมาย (6 เดือน)
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    <div className="h-72">
-                        <ResponsiveContainer width="100%" height="100%">
-                            <BarChart data={revenueData} margin={{ top: 5, right: 20, left: 0, bottom: 5 }}>
-                                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="#f0f0f0" />
-                                <XAxis dataKey="month" tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <YAxis tickFormatter={(v) => `${(v / 1000).toFixed(0)}k`} tick={{ fontSize: 12 }} axisLine={false} tickLine={false} />
-                                <Tooltip formatter={(value) => [formatCurrency(Number(value || 0))]} />
-                                <Bar dataKey="goal" fill="#e5e7eb" radius={[4, 4, 0, 0]} name="เป้าหมาย" />
-                                <Bar dataKey="revenue" fill="#3b82f6" radius={[4, 4, 0, 0]} name="รายรับจริง" />
-                                <Legend />
-                            </BarChart>
-                        </ResponsiveContainer>
-                    </div>
-                    <AIInsight {...revenueInsight} />
-                </CardContent>
-            </Card>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                {/* Conversion Funnel */}
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <TrendingUp className="w-4 h-4 text-green-500" />
-                            Conversion Funnel
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-3">
-                        {funnelData.map((item, idx) => (
-                            <div key={item.stage}>
-                                <div className="flex items-center justify-between text-sm mb-1">
-                                    <span className="font-medium text-gray-700">{item.stage}</span>
-                                    <span className="text-gray-500">{item.count} ({item.pct}%)</span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-full h-6">
-                                    <div
-                                        className="h-6 rounded-full transition-all flex items-center justify-end pr-2"
-                                        style={{ width: `${Math.max(item.pct, 8)}%`, backgroundColor: FUNNEL_COLORS[idx] }}
-                                    >
-                                        <span className="text-[11px] font-medium text-white">{item.pct}%</span>
-                                    </div>
-                                </div>
-                            </div>
-                        ))}
-                        <AIInsight {...funnelInsight} />
-                    </CardContent>
-                </Card>
-
-                {/* Revenue by Industry */}
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <PieIcon className="w-4 h-4 text-purple-500" />
-                            รายรับตามอุตสาหกรรม
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent>
-                        <div className="h-52">
-                            <ResponsiveContainer width="100%" height="100%">
-                                <PieChart>
-                                    <Pie
-                                        data={industryData}
-                                        cx="50%"
-                                        cy="50%"
-                                        innerRadius={50}
-                                        outerRadius={80}
-                                        paddingAngle={3}
-                                        dataKey="value"
-                                        nameKey="name"
-                                    >
-                                        {industryData.map((_, idx) => (
-                                            <Cell key={idx} fill={PIE_COLORS[idx % PIE_COLORS.length]} />
-                                        ))}
-                                    </Pie>
-                                    <Tooltip formatter={(value) => [formatCurrency(Number(value || 0))]} />
-                                </PieChart>
-                            </ResponsiveContainer>
-                        </div>
-                        <div className="flex flex-wrap gap-2 mt-2 justify-center">
-                            {industryData.map((item, idx) => (
-                                <div key={item.name} className="flex items-center gap-1 text-xs">
-                                    <div className="w-2.5 h-2.5 rounded-sm" style={{ backgroundColor: PIE_COLORS[idx % PIE_COLORS.length] }} />
-                                    <span className="text-gray-600">{item.name}</span>
-                                </div>
-                            ))}
-                        </div>
-                        {industryInsight && <AIInsight {...industryInsight} />}
-                    </CardContent>
-                </Card>
-            </div>
-
-            {/* Team Performance */}
-            <Card className="shadow-sm">
-                <CardHeader className="pb-2">
-                    <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Users className="w-4 h-4 text-blue-500" />
-                        ผลงานทีม
-                    </CardTitle>
-                </CardHeader>
-                <CardContent className="p-0">
-                    <table className="w-full">
-                        <thead>
-                            <tr className="bg-gray-50 border-b text-xs font-medium text-gray-500 uppercase">
-                                <th className="px-4 py-3 text-left">สมาชิก</th>
-                                <th className="px-4 py-3 text-center">งานเสร็จ</th>
-                                <th className="px-4 py-3 text-center">งานค้าง</th>
-                                <th className="px-4 py-3 text-center">ดีลชนะ</th>
-                                <th className="px-4 py-3 text-right">รายรับ</th>
-                                <th className="px-4 py-3 text-center">ลูกค้าดูแล</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            {teamData.map((m) => (
-                                <tr key={m.name} className="border-b border-gray-100 hover:bg-gray-50/50">
-                                    <td className="px-4 py-3">
-                                        <div className="flex items-center gap-2">
-                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
-                                                {m.name.charAt(0)}
-                                            </div>
-                                            <span className="font-medium text-sm text-gray-900">{m.name}</span>
-                                        </div>
-                                    </td>
-                                    <td className="px-4 py-3 text-center text-sm text-green-600 font-medium">{m.tasksDone}</td>
-                                    <td className="px-4 py-3 text-center text-sm text-amber-600 font-medium">{m.tasksPending}</td>
-                                    <td className="px-4 py-3 text-center text-sm text-blue-600 font-medium">{m.dealsWon}</td>
-                                    <td className="px-4 py-3 text-right text-sm font-semibold text-gray-900">{formatCurrency(m.revenue)}</td>
-                                    <td className="px-4 py-3 text-center text-sm text-gray-600">{m.customers}</td>
-                                </tr>
-                            ))}
-                        </tbody>
-                    </table>
-                    {teamInsight && (
-                        <div className="px-4 pb-4">
-                            <AIInsight {...teamInsight} />
-                        </div>
-                    )}
-                </CardContent>
-            </Card>
-
-            {/* Goal Tracking */}
-            {goalTracking && (
-                <Card className="shadow-sm">
-                    <CardHeader className="pb-2">
-                        <CardTitle className="text-base font-semibold flex items-center gap-2">
-                            <Target className="w-4 h-4 text-amber-500" />
-                            เป้าหมายเดือนนี้
-                        </CardTitle>
-                    </CardHeader>
-                    <CardContent className="space-y-5">
-                        {[
-                            { label: 'รายรับ', ...goalTracking.revenue, format: (v: number) => formatCurrency(v), color: 'bg-blue-500' },
-                            { label: 'ดีลปิด', ...goalTracking.deals, format: (v: number) => `${v} ดีล`, color: 'bg-green-500' },
-                            { label: 'ลีดใหม่', ...goalTracking.leads, format: (v: number) => `${v} ลีด`, color: 'bg-purple-500' },
-                        ].map((item) => (
-                            <div key={item.label}>
-                                <div className="flex items-center justify-between text-sm mb-1.5">
-                                    <span className="font-medium text-gray-700">{item.label}</span>
-                                    <span className="text-gray-500">{item.format(item.current)} / {item.format(item.target)}</span>
-                                </div>
-                                <div className="w-full bg-gray-100 rounded-full h-3">
-                                    <div
-                                        className={`h-3 rounded-full transition-all ${item.color}`}
-                                        style={{ width: `${item.pct}%` }}
-                                    />
-                                </div>
-                                <p className="text-right text-xs text-gray-400 mt-0.5">{item.pct}%</p>
-                            </div>
-                        ))}
-                        {goalInsight && <AIInsight {...goalInsight} />}
-                    </CardContent>
-                </Card>
-            )}
         </div>
     );
 }

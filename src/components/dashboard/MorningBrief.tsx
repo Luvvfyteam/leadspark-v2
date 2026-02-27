@@ -2,6 +2,7 @@
 
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
+import { Sparkles } from 'lucide-react';
 
 const TODAY = '2026-02-17';
 const THIS_MONTH = '2026-02';
@@ -20,10 +21,8 @@ export function MorningBrief() {
     const router = useRouter();
     const { tasks, customers, activities, goals, deals } = useAppStore();
 
-    // งานวันนี้ (รวมเกินกำหนด)
     const todayTaskCount = tasks.filter((t) => !t.is_completed && t.due_date <= TODAY).length;
 
-    // ลูกค้าที่ต้อง follow up (ไม่มี activity ใน 7+ วัน)
     const now = new Date(TODAY).getTime();
     const followUpCount = customers.filter((c) => {
         if (c.status === 'inactive') return false;
@@ -35,7 +34,6 @@ export function MorningBrief() {
         return daysSince >= NO_CONTACT_DAYS;
     }).length;
 
-    // ยอดขาย % ของเป้า
     const goal = goals.find((g) => g.month === THIS_MONTH);
     const revenue = deals
         .filter((d) => d.status === 'completed' && d.created_at >= `${THIS_MONTH}-01`)
@@ -44,41 +42,53 @@ export function MorningBrief() {
         ? Math.round((revenue / goal.revenue_target) * 100)
         : null;
 
-    // ชื่อ user (hardcoded เหมือนส่วนอื่น)
     const userName = 'Asia';
 
     return (
-        <div className="rounded-xl border-l-4 border-blue-500 bg-blue-50 px-5 py-4">
-            <p className="text-base font-semibold text-gray-900">
-                {getGreeting()} {userName} 👋
-            </p>
-            <p className="mt-1 flex flex-wrap items-center gap-x-1 gap-y-0.5 text-sm text-gray-600">
-                วันนี้มี{' '}
-                <button
-                    onClick={() => router.push('/tasks')}
-                    className="font-semibold text-blue-700 hover:underline"
-                >
-                    {todayTaskCount} งาน
-                </button>
-                {' '}·{' '}
-                <button
-                    onClick={() => router.push('/customers')}
-                    className="font-semibold text-blue-700 hover:underline"
-                >
-                    {followUpCount} ลูกค้าต้อง follow up
-                </button>
-                {revenuePercent !== null && (
-                    <>
-                        {' '}·{' ยอดขายเดือนนี้ '}
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-6 py-5 shadow-lg shadow-blue-200/40">
+            {/* Background decoration */}
+            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-400/10 rounded-full blur-xl" />
+
+            <div className="relative flex items-start gap-4">
+                {/* Avatar / Icon */}
+                <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm shrink-0">
+                    <Sparkles className="w-6 h-6 text-white" />
+                </div>
+
+                <div className="min-w-0 flex-1">
+                    <p className="text-lg font-bold text-white">
+                        {getGreeting()} {userName} 👋
+                    </p>
+                    <p className="mt-1.5 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-white/70">
+                        วันนี้มี{' '}
                         <button
-                            onClick={() => router.push('/reports')}
-                            className="font-semibold text-blue-700 hover:underline"
+                            onClick={() => router.push('/tasks')}
+                            className="font-bold text-white hover:underline underline-offset-2"
                         >
-                            {revenuePercent}% ของเป้า
+                            {todayTaskCount} งาน
                         </button>
-                    </>
-                )}
-            </p>
+                        {' '}·{' '}
+                        <button
+                            onClick={() => router.push('/customers')}
+                            className="font-bold text-white hover:underline underline-offset-2"
+                        >
+                            {followUpCount} ลูกค้าต้อง follow up
+                        </button>
+                        {revenuePercent !== null && (
+                            <>
+                                {' '}·{' ยอดขายเดือนนี้ '}
+                                <button
+                                    onClick={() => router.push('/reports')}
+                                    className="font-bold text-white hover:underline underline-offset-2"
+                                >
+                                    {revenuePercent}% ของเป้า
+                                </button>
+                            </>
+                        )}
+                    </p>
+                </div>
+            </div>
         </div>
     );
 }

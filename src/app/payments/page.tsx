@@ -178,22 +178,27 @@ export default function PaymentsPage() {
     return (
         <div className="max-w-5xl mx-auto space-y-6">
             {/* Header */}
-            <div>
-                <div className="flex items-center gap-3">
-                    <h1 className="text-2xl font-bold text-gray-900">การชำระเงิน</h1>
-                    {canExport && (
-                        <Button variant="outline" size="sm" onClick={exportCSV}>
-                            <Download className="w-4 h-4 mr-1" /> CSV
-                        </Button>
-                    )}
+            <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                    <CreditCard className="w-5 h-5 text-white" />
                 </div>
-                <p className="text-sm text-gray-500 mt-0.5">ติดตามรายรับและการชำระเงิน</p>
+                <div className="flex-1">
+                    <div className="flex items-center gap-3">
+                        <h1 className="text-2xl font-black text-gray-900">การชำระเงิน</h1>
+                        {canExport && (
+                            <Button variant="outline" size="sm" onClick={exportCSV} className="rounded-xl">
+                                <Download className="w-4 h-4 mr-1" /> CSV
+                            </Button>
+                        )}
+                    </div>
+                    <p className="text-sm text-gray-500 mt-0.5">ติดตามรายรับและการชำระเงิน</p>
+                </div>
             </div>
 
             {/* Summary Cards */}
             <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
                 {summaryCards.map((card) => (
-                    <Card key={card.label} className="shadow-sm">
+                    <Card key={card.label} className="shadow-sm border-gray-100 rounded-xl hover:shadow-md transition-shadow">
                         <CardContent className="p-4">
                             <div className="flex items-center justify-between mb-2">
                                 <span className="text-xs text-gray-500 font-medium">{card.label}</span>

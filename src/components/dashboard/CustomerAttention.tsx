@@ -95,12 +95,12 @@ export function CustomerAttention() {
 
     return (
         <>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm border-amber-100/60">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
                         <BellRing className="w-4 h-4 text-amber-500" />
                         ลูกค้าที่ต้องดูแล
-                        <span className="ml-1 inline-flex items-center justify-center rounded-full bg-amber-100 px-2 py-0.5 text-xs font-semibold text-amber-700">
+                        <span className="inline-flex items-center justify-center rounded-full bg-amber-500 text-white text-[10px] font-bold w-6 h-6 ml-1">
                             {topItems.length}
                         </span>
                     </CardTitle>
@@ -113,24 +113,26 @@ export function CustomerAttention() {
                             <button
                                 key={c.id}
                                 onClick={() => setPanelId(c.id)}
-                                className="w-full flex items-start gap-3 rounded-lg px-3 py-2.5 hover:bg-gray-50 transition-colors text-left"
+                                className="w-full flex items-start gap-3 rounded-xl px-3 py-3 hover:bg-amber-50/30 transition-colors text-left"
                             >
                                 {/* Alert icon */}
-                                <AlertTriangle className={`w-4 h-4 mt-0.5 shrink-0 ${item.reasons.includes('overdue_payment') ? 'text-red-500' : 'text-amber-400'}`} />
+                                <div className={`p-1.5 rounded-lg shrink-0 mt-0.5 ${item.reasons.includes('overdue_payment') ? 'bg-red-50' : 'bg-amber-50'}`}>
+                                    <AlertTriangle className={`w-3.5 h-3.5 ${item.reasons.includes('overdue_payment') ? 'text-red-500' : 'text-amber-500'}`} />
+                                </div>
 
                                 <div className="min-w-0 flex-1">
-                                    <p className="text-sm font-medium text-gray-900 truncate">{c.business_name}</p>
-                                    <div className="flex flex-wrap gap-x-2 gap-y-0.5 mt-0.5">
+                                    <p className="text-sm font-semibold text-gray-900 truncate">{c.business_name}</p>
+                                    <div className="flex flex-wrap gap-1.5 mt-1.5">
                                         {item.reasons.includes('overdue_payment') && (
-                                            <span className="text-xs text-red-600">ค้างชำระ</span>
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-red-100 text-red-700">ค้างชำระ</span>
                                         )}
                                         {item.reasons.includes('unpaid_deal') && (
-                                            <span className="text-xs text-orange-600">
+                                            <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-orange-100 text-orange-700">
                                                 ยังไม่จ่าย {item.unpaidDeals.length} ดีล
                                             </span>
                                         )}
                                         {item.reasons.includes('no_activity') && (
-                                            <span className="text-xs text-gray-400">
+                                            <span className="text-[10px] font-medium px-2 py-0.5 rounded-full bg-gray-100 text-gray-500">
                                                 {item.daysSinceActivity !== null
                                                     ? `ไม่มีกิจกรรม ${Math.floor(item.daysSinceActivity)} วัน`
                                                     : 'ยังไม่เคยติดต่อ'}
@@ -139,7 +141,7 @@ export function CustomerAttention() {
                                     </div>
                                 </div>
 
-                                <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 bg-gray-100 ${statusCfg?.color || 'text-gray-600'}`}>
+                                <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 bg-gray-100 ${statusCfg?.color || 'text-gray-600'}`}>
                                     {statusCfg?.label || c.status}
                                 </span>
                             </button>

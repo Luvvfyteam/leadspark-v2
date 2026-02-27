@@ -70,7 +70,7 @@ export default function CustomersPage() {
     const [searchQuery, setSearchQuery] = useState('');
     const [activeFilters, setActiveFilters] = useState<Record<string, string | string[]>>({});
     const [sortConfig, setSortConfig] = useState<{ key: string, direction: 'asc' | 'desc' } | null>(null);
-    
+
     const [selectedCustomerId, setSelectedCustomerId] = useState<string | null>(null);
     const [showAddForm, setShowAddForm] = useState(false);
     const [showImportModal, setShowImportModal] = useState(false);
@@ -84,7 +84,7 @@ export default function CustomersPage() {
     // ── Computed ────────────────────────────────────────────────────────────
     const filteredAndSorted = useMemo(() => {
         let list = [...customers];
-        
+
         // Search
         if (searchQuery.trim()) {
             const q = searchQuery.toLowerCase();
@@ -94,7 +94,7 @@ export default function CustomersPage() {
                 c.email.toLowerCase().includes(q),
             );
         }
-        
+
         // Filters
         if (activeFilters.status) list = list.filter((c) => c.status === activeFilters.status);
         if (activeFilters.industry) list = list.filter((c) => c.industry === activeFilters.industry);
@@ -128,18 +128,18 @@ export default function CustomersPage() {
                 return b.created_at.localeCompare(a.created_at);
             });
         }
-        
+
         return list;
     }, [customers, searchQuery, activeFilters, sortConfig, deals, activities]);
 
     const getCustomerDeals = (custId: string) => deals.filter((d) => d.customer_id === custId);
-    const getCustomerActivities = (custId: string) => 
+    const getCustomerActivities = (custId: string) =>
         activities.filter((a) => a.customer_id === custId).sort((a, b) => b.created_at.localeCompare(a.created_at));
     const getUserName = (id: string) => mockUsers.find((u) => u.id === id)?.name || '';
 
-    const selectedCustomer = useMemo(() => 
+    const selectedCustomer = useMemo(() =>
         selectedCustomerId ? (customers.find(c => c.id === selectedCustomerId) ?? null) : null
-    , [selectedCustomerId, customers]);
+        , [selectedCustomerId, customers]);
 
     // ── Handlers ────────────────────────────────────────────────────────────
     const handleFilterChange = (key: string, value: string | string[] | null) => {
@@ -217,7 +217,7 @@ export default function CustomersPage() {
 
     // ── Render Helpers ──────────────────────────────────────────────────────
     const SortButton = ({ column, label }: { column: string, label: string }) => (
-        <button 
+        <button
             onClick={() => handleSort(column)}
             className="group flex items-center gap-1.5 hover:text-blue-600 transition-colors"
         >
@@ -227,24 +227,29 @@ export default function CustomersPage() {
     );
 
     return (
-        <div className="max-w-7xl mx-auto space-y-4">
+        <div className="max-w-7xl mx-auto space-y-6">
             {/* Header Area */}
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-col gap-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
-                    <div>
-                        <h1 className="text-2xl font-bold text-gray-900">ฐานลูกค้า</h1>
-                        <p className="text-sm text-gray-500 mt-0.5">บริหารจัดการข้อมูลผู้มุ่งหวังและลูกค้าทั้งหมด ({filteredAndSorted.length} ราย)</p>
+                    <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                            <Users className="w-5 h-5 text-white" />
+                        </div>
+                        <div>
+                            <h1 className="text-2xl font-black text-gray-900">ฐานลูกค้า</h1>
+                            <p className="text-sm text-gray-500 mt-0.5">บริหารจัดการข้อมูลผู้มุ่งหวังและลูกค้าทั้งหมด <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">{filteredAndSorted.length} ราย</Badge></p>
+                        </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)}>
+                        <Button variant="outline" size="sm" onClick={() => setShowImportModal(true)} className="rounded-xl">
                             <Upload className="w-4 h-4 mr-2" /> นำเข้า
                         </Button>
                         {canExport && (
-                            <Button variant="outline" size="sm" onClick={() => { exportCSV(filteredAndSorted); showToast('ดาวน์โหลด CSV แล้ว'); }}>
+                            <Button variant="outline" size="sm" onClick={() => { exportCSV(filteredAndSorted); showToast('ดาวน์โหลด CSV แล้ว'); }} className="rounded-xl">
                                 <Download className="w-4 h-4 mr-2" /> Export
                             </Button>
                         )}
-                        <Button size="sm" onClick={() => setShowAddForm(true)} className="bg-blue-600 hover:bg-blue-700">
+                        <Button size="sm" onClick={() => setShowAddForm(true)} className="bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">
                             <Plus className="w-4 h-4 mr-2" /> เพิ่มลูกค้า
                         </Button>
                     </div>
@@ -261,16 +266,16 @@ export default function CustomersPage() {
                             searchValue={searchQuery}
                         />
                     </div>
-                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-lg shrink-0">
-                        <button 
+                    <div className="flex items-center gap-1 bg-gray-100 p-1 rounded-xl shrink-0">
+                        <button
                             onClick={() => setView('table')}
-                            className={`p-1.5 rounded-md transition-all ${view === 'table' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-lg transition-all duration-200 ${view === 'table' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <List className="w-4 h-4" />
                         </button>
-                        <button 
+                        <button
                             onClick={() => setView('card')}
-                            className={`p-1.5 rounded-md transition-all ${view === 'card' ? 'bg-white shadow-sm text-blue-600' : 'text-gray-500 hover:text-gray-700'}`}
+                            className={`p-2 rounded-lg transition-all duration-200 ${view === 'card' ? 'bg-white shadow-sm text-blue-600 font-bold' : 'text-gray-500 hover:text-gray-700'}`}
                         >
                             <LayoutGrid className="w-4 h-4" />
                         </button>
@@ -288,63 +293,63 @@ export default function CustomersPage() {
                     onAction={customers.length === 0 ? () => setShowAddForm(true) : () => { setActiveFilters({}); setSearchQuery(''); }}
                 />
             ) : view === 'table' ? (
-                <div className="bg-white border border-gray-200 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
+                <div className="bg-white border border-gray-100 rounded-xl overflow-hidden shadow-sm overflow-x-auto">
                     <table className="w-full text-left border-collapse min-w-[1000px]">
                         <thead>
-                            <tr className="bg-gray-50/50 border-b border-gray-200">
-                                <th className="px-4 py-3 w-10"></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"><SortButton column="business_name" label="ชื่อธุรกิจ" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"><SortButton column="industry" label="อุตสาหกรรม" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"><SortButton column="status" label="สถานะ" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider"><SortButton column="assigned_to" label="ผู้ดูแล" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right"><SortButton column="totalValue" label="มูลค่า Deal" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right"><SortButton column="lastContact" label="ติดต่อล่าสุด" /></th>
-                                <th className="px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wider text-right"><SortButton column="created_at" label="เพิ่มเมื่อ" /></th>
+                            <tr className="bg-gray-50/80 border-b border-gray-200">
+                                <th className="px-4 py-3.5 w-10"></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider"><SortButton column="business_name" label="ชื่อธุรกิจ" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider"><SortButton column="industry" label="อุตสาหกรรม" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider"><SortButton column="status" label="สถานะ" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider"><SortButton column="assigned_to" label="ผู้ดูแล" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right"><SortButton column="totalValue" label="มูลค่า Deal" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right"><SortButton column="lastContact" label="ติดต่อล่าสุด" /></th>
+                                <th className="px-4 py-3.5 text-[11px] font-bold text-gray-500 uppercase tracking-wider text-right"><SortButton column="created_at" label="เพิ่มเมื่อ" /></th>
                             </tr>
                         </thead>
-                        <tbody className="divide-y divide-gray-100">
+                        <tbody className="divide-y divide-gray-50">
                             {filteredAndSorted.map((c) => {
                                 const deals = getCustomerDeals(c.id);
                                 const totalValue = deals.reduce((sum, d) => sum + d.value, 0);
                                 const statusCfg = CUSTOMER_STATUS_CONFIG[c.status];
                                 const lastAct = getCustomerActivities(c.id)[0];
-                                
+
                                 return (
-                                    <tr 
-                                        key={c.id} 
+                                    <tr
+                                        key={c.id}
                                         onClick={() => setSelectedCustomerId(c.id)}
-                                        className="hover:bg-blue-50/30 transition-colors cursor-pointer group"
+                                        className="hover:bg-blue-50/40 transition-all duration-150 cursor-pointer group"
                                     >
-                                        <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
-                                            <button onClick={() => handleTogglePin(c.id, c.business_name)}>
-                                                <Star className={`w-4 h-4 ${c.is_pinned ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 group-hover:text-gray-400'}`} />
+                                        <td className="px-4 py-3.5" onClick={(e) => e.stopPropagation()}>
+                                            <button onClick={() => handleTogglePin(c.id, c.business_name)} className="hover:scale-110 transition-transform">
+                                                <Star className={`w-4 h-4 ${c.is_pinned ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 group-hover:text-gray-400'} transition-colors`} />
                                             </button>
                                         </td>
-                                        <td className="px-4 py-3">
-                                            <span className="text-sm font-medium text-gray-900">{c.business_name}</span>
+                                        <td className="px-4 py-3.5">
+                                            <span className="text-sm font-semibold text-gray-900 group-hover:text-blue-600 transition-colors">{c.business_name}</span>
                                             <div className="flex items-center gap-2 mt-0.5">
                                                 <span className="text-[10px] text-gray-400">{c.phone || c.email || '—'}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-600">{c.industry}</td>
-                                        <td className="px-4 py-3">
-                                            <Badge variant="secondary" className={`text-[10px] font-medium px-2 py-0.5 ${statusCfg?.color || ''}`}>
+                                        <td className="px-4 py-3.5 text-sm text-gray-600">{c.industry}</td>
+                                        <td className="px-4 py-3.5">
+                                            <Badge variant="secondary" className={`text-[10px] font-bold px-2.5 py-0.5 rounded-full ${statusCfg?.color || ''}`}>
                                                 {statusCfg?.label || c.status}
                                             </Badge>
                                         </td>
-                                        <td className="px-4 py-3">
+                                        <td className="px-4 py-3.5">
                                             <div className="flex items-center gap-2">
-                                                <div className="w-5 h-5 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
+                                                <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
                                                     {getUserName(c.assigned_to).charAt(0)}
                                                 </div>
-                                                <span className="text-sm text-gray-600">{getUserName(c.assigned_to)}</span>
+                                                <span className="text-sm text-gray-700 font-medium">{getUserName(c.assigned_to)}</span>
                                             </div>
                                         </td>
-                                        <td className="px-4 py-3 text-sm font-semibold text-gray-900 text-right">{formatCurrency(totalValue)}</td>
-                                        <td className="px-4 py-3 text-sm text-gray-500 text-right">
+                                        <td className="px-4 py-3.5 text-sm font-bold text-gray-900 text-right">{formatCurrency(totalValue)}</td>
+                                        <td className="px-4 py-3.5 text-sm text-gray-500 text-right">
                                             {lastAct ? getRelativeTime(lastAct.created_at) : '—'}
                                         </td>
-                                        <td className="px-4 py-3 text-sm text-gray-400 text-right">
+                                        <td className="px-4 py-3.5 text-sm text-gray-400 text-right">
                                             {formatDate(c.created_at)}
                                         </td>
                                     </tr>
@@ -364,56 +369,56 @@ export default function CustomersPage() {
                         return (
                             <Card
                                 key={customer.id}
-                                className="shadow-sm hover:shadow-md transition-all cursor-pointer group"
+                                className="shadow-sm hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 cursor-pointer group border-gray-100 rounded-xl"
                                 onClick={() => setSelectedCustomerId(customer.id)}
                             >
-                                <CardContent className="p-4">
-                                    <div className="flex items-start justify-between gap-3 mb-3">
+                                <CardContent className="p-5">
+                                    <div className="flex items-start justify-between gap-3 mb-4">
                                         <div className="flex items-start gap-3">
                                             <button
                                                 onClick={(e) => { e.stopPropagation(); handleTogglePin(customer.id, customer.business_name); }}
-                                                className="mt-0.5"
+                                                className="mt-0.5 hover:scale-110 transition-transform"
                                             >
-                                                <Star className={`w-4 h-4 ${customer.is_pinned ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 group-hover:text-yellow-400'}`} />
+                                                <Star className={`w-4 h-4 ${customer.is_pinned ? 'text-yellow-500 fill-yellow-500' : 'text-gray-300 group-hover:text-yellow-400'} transition-colors`} />
                                             </button>
                                             <div className="min-w-0">
-                                                <h3 className="font-semibold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
+                                                <h3 className="font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                                                     {customer.business_name}
                                                 </h3>
                                                 <p className="text-xs text-gray-500 mt-0.5">{customer.industry}</p>
                                             </div>
                                         </div>
-                                        <Badge variant="secondary" className={`text-[10px] font-medium shrink-0 ${statusConfig?.color || ''}`}>
+                                        <Badge variant="secondary" className={`text-[10px] font-bold shrink-0 rounded-full px-2.5 ${statusConfig?.color || ''}`}>
                                             {statusConfig?.label || customer.status}
                                         </Badge>
                                     </div>
 
-                                    <div className="grid grid-cols-2 gap-4 mb-4 border-y border-gray-50 py-3">
+                                    <div className="grid grid-cols-2 gap-4 mb-4 bg-gray-50/50 rounded-lg p-3">
                                         <div>
-                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">ยอดรวมดีล</p>
-                                            <p className="text-sm font-bold text-gray-900">{formatCurrency(totalValue)}</p>
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">ยอดรวมดีล</p>
+                                            <p className="text-sm font-black text-gray-900">{formatCurrency(totalValue)}</p>
                                         </div>
                                         <div>
-                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider mb-1">ติดต่อล่าสุด</p>
-                                            <p className="text-sm text-gray-600">{lastAct ? getRelativeTime(lastAct.created_at) : 'ยังไม่มี'}</p>
+                                            <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-1">ติดต่อล่าสุด</p>
+                                            <p className="text-sm font-medium text-gray-600">{lastAct ? getRelativeTime(lastAct.created_at) : 'ยังไม่มี'}</p>
                                         </div>
                                     </div>
 
                                     <div className="flex items-center justify-between">
                                         <div className="flex items-center gap-2">
-                                            <div className="w-6 h-6 rounded-full bg-blue-100 flex items-center justify-center text-[10px] font-bold text-blue-700">
+                                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[10px] font-bold text-white shadow-sm">
                                                 {getUserName(customer.assigned_to).charAt(0)}
                                             </div>
-                                            <span className="text-xs text-gray-600">{getUserName(customer.assigned_to)}</span>
+                                            <span className="text-xs font-medium text-gray-700">{getUserName(customer.assigned_to)}</span>
                                         </div>
-                                        <div className="flex items-center gap-2">
+                                        <div className="flex items-center gap-1.5">
                                             {customer.phone && (
-                                                <div className="p-1.5 rounded-full bg-gray-50 text-gray-400 hover:text-blue-600 transition-colors">
+                                                <div className="p-1.5 rounded-full bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
                                                     <Phone className="w-3.5 h-3.5" />
                                                 </div>
                                             )}
                                             {customer.email && (
-                                                <div className="p-1.5 rounded-full bg-gray-50 text-gray-400 hover:text-blue-600 transition-colors">
+                                                <div className="p-1.5 rounded-full bg-gray-50 text-gray-400 hover:text-blue-600 hover:bg-blue-50 transition-all">
                                                     <Mail className="w-3.5 h-3.5" />
                                                 </div>
                                             )}
@@ -434,7 +439,7 @@ export default function CustomersPage() {
                 width="lg"
                 footer={
                     <div className="flex gap-2 w-full">
-                        <Button 
+                        <Button
                             className="flex-1 bg-blue-600 hover:bg-blue-700"
                             onClick={() => router.push(`/customers/${selectedCustomer?.id}`)}
                         >
@@ -451,23 +456,23 @@ export default function CustomersPage() {
                     const custDeals = getCustomerDeals(selectedCustomer.id);
                     const totalValue = custDeals.reduce((sum, d) => sum + d.value, 0);
                     const recentActs = getCustomerActivities(selectedCustomer.id).slice(0, 5);
-                    
+
                     return (
                         <div className="space-y-6">
                             {/* Header Info */}
                             <div className="flex items-center justify-between border-b border-gray-100 pb-4">
-                                <div className="space-y-1">
+                                <div className="space-y-1.5">
                                     <div className="flex items-center gap-2">
-                                        <Badge variant="secondary" className={`text-xs ${statusCfg?.color || ''}`}>
+                                        <Badge variant="secondary" className={`text-xs font-bold rounded-full px-2.5 ${statusCfg?.color || ''}`}>
                                             {statusCfg?.label}
                                         </Badge>
-                                        <span className="text-xs text-gray-500">{selectedCustomer.industry}</span>
+                                        <span className="text-xs text-gray-500 font-medium">{selectedCustomer.industry}</span>
                                     </div>
                                     <p className="text-xs text-gray-400">เพิ่มเมื่อ {formatDate(selectedCustomer.created_at)}</p>
                                 </div>
                                 <div className="text-right">
-                                    <p className="text-xs text-gray-400 uppercase tracking-wider mb-0.5">มูลค่ารวม</p>
-                                    <p className="text-xl font-bold text-gray-900">{formatCurrency(totalValue)}</p>
+                                    <p className="text-[10px] text-gray-400 uppercase tracking-wider font-bold mb-0.5">มูลค่ารวม</p>
+                                    <p className="text-2xl font-black text-gray-900">{formatCurrency(totalValue)}</p>
                                 </div>
                             </div>
 
@@ -497,7 +502,7 @@ export default function CustomersPage() {
                                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">การดูแล</h4>
                                     <div className="space-y-2">
                                         <div className="flex items-center gap-2.5 text-sm text-gray-700">
-                                            <User className="w-4 h-4 text-gray-400" /> 
+                                            <User className="w-4 h-4 text-gray-400" />
                                             <div>
                                                 <p className="text-xs text-gray-400">ผู้ดูแล</p>
                                                 <p className="font-medium">{getUserName(selectedCustomer.assigned_to)}</p>
@@ -520,13 +525,13 @@ export default function CustomersPage() {
                                     <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">กิจกรรมล่าสุด</h4>
                                     <button className="text-xs text-blue-600 hover:underline">เพิ่มกิจกรรม</button>
                                 </div>
-                                <div className="bg-gray-50 rounded-lg p-3 space-y-3">
+                                <div className="bg-gray-50/80 rounded-xl p-4 space-y-3">
                                     {recentActs.length > 0 ? recentActs.map((act) => {
                                         const cfg = ACTIVITY_TYPE_CONFIG[act.type];
                                         return (
-                                            <div key={act.id} className="flex gap-3">
+                                            <div key={act.id} className="flex gap-3 hover:bg-white/60 rounded-lg p-1.5 -m-1.5 transition-colors">
                                                 <div className="shrink-0 mt-1">
-                                                    <History className="w-3.5 h-3.5 text-gray-400" />
+                                                    <div className="w-2 h-2 rounded-full bg-blue-400 mt-1"></div>
                                                 </div>
                                                 <div className="flex-1 min-w-0">
                                                     <div className="flex items-center justify-between gap-2">
@@ -560,7 +565,7 @@ export default function CustomersPage() {
             </SlideOverPanel>
 
             {/* ── Modals ───────────────────────────────────────────────────────── */}
-            
+
             {/* Add Customer Dialog */}
             <Dialog open={showAddForm} onOpenChange={setShowAddForm}>
                 <DialogContent className="sm:max-w-[500px]">
@@ -574,9 +579,9 @@ export default function CustomersPage() {
                         </div>
                         <div className="grid gap-2">
                             <label className="text-sm font-medium text-gray-700">อุตสาหกรรม</label>
-                            <select 
-                                value={newIndustry} 
-                                onChange={(e) => setNewIndustry(e.target.value)} 
+                            <select
+                                value={newIndustry}
+                                onChange={(e) => setNewIndustry(e.target.value)}
                                 className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                             >
                                 {INDUSTRY_OPTIONS.map((ind) => <option key={ind} value={ind}>{ind}</option>)}
@@ -609,7 +614,7 @@ export default function CustomersPage() {
                         <DialogTitle>นำเข้าข้อมูลลูกค้า</DialogTitle>
                     </DialogHeader>
                     <div className="py-8">
-                        <div 
+                        <div
                             className="border-2 border-dashed border-gray-200 rounded-xl p-10 flex flex-col items-center justify-center gap-3 hover:bg-gray-50 hover:border-blue-300 transition-all cursor-pointer group"
                             onClick={() => document.getElementById('file-upload')?.click()}
                         >

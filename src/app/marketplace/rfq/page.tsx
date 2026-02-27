@@ -99,13 +99,18 @@ export default function RFQPage() {
         <div className="max-w-3xl mx-auto py-2">
             {/* Header */}
             <div className="flex items-center justify-between mb-6">
-                <div>
-                    <h1 className="text-2xl font-semibold text-gray-900 mb-1">RFQ ของฉัน</h1>
-                    <p className="text-sm text-gray-500">คำขอใบเสนอราคาที่คุณโพสต์ไว้ในตลาด</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center shadow-sm">
+                        <FileText className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">RFQ ของฉัน</h1>
+                        <p className="text-sm text-gray-500">คำขอใบเสนอราคาที่คุณโพสต์ไว้ในตลาด</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => setShowNewRFQ(true)}
-                    className="flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-lg hover:bg-blue-700 transition-colors"
+                    className="flex items-center gap-2 bg-blue-600 text-white text-sm font-medium px-4 py-2.5 rounded-xl hover:bg-blue-700 transition-colors shadow-sm"
                 >
                     <Plus className="w-4 h-4" />
                     สร้าง RFQ ใหม่

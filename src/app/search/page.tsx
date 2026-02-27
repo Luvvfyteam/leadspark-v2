@@ -77,7 +77,7 @@ function SearchableDropdown({ label, options, value, onChange, placeholder }: {
 function ScoreBadge({ score, fit, need, potential }: { score: number, fit: number, need: number, potential: number }) {
     const color = score >= 80 ? 'bg-red-500' : score >= 50 ? 'bg-amber-500' : 'bg-blue-500';
     const label = score >= 80 ? 'Hot' : score >= 50 ? 'Warm' : 'Cool';
-    
+
     return (
         <TooltipProvider>
             <Tooltip>
@@ -122,7 +122,7 @@ interface SavedSearch {
 export default function LeadSearchPage() {
     const { leads, updateLead } = useAppStore();
     const { showToast } = useToast();
-    
+
     // Filters state
     const [globalSearch, setGlobalSearch] = useState('');
     const [industry, setIndustry] = useState('');
@@ -132,7 +132,7 @@ export default function LeadSearchPage() {
     const [size, setSize] = useState<string[]>([]);
     const [onlineStatus, setOnlineStatus] = useState<string[]>([]);
     const [resultCount, setResultCount] = useState('20');
-    
+
     // UI state
     const [showExtra, setShowExtra] = useState(false);
     const [isSearching, setIsSearching] = useState(false);
@@ -246,12 +246,17 @@ export default function LeadSearchPage() {
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">ค้นหาลีด</h1>
-                    <p className="text-sm text-gray-500 mt-1">ค้นหาธุรกิจที่ตรงกับกลุ่มเป้าหมายของคุณด้วยขุมพลัง AI</p>
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <Search className="w-5 h-5 text-white" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">ค้นหาลีด</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">ค้นหาธุรกิจที่ตรงกับกลุ่มเป้าหมายของคุณด้วยขุมพลัง AI</p>
+                    </div>
                 </div>
                 {hasSearched && (
-                    <Button variant="outline" size="sm" onClick={saveSearch} className="gap-2">
+                    <Button variant="outline" size="sm" onClick={saveSearch} className="gap-2 rounded-xl">
                         <Save className="w-4 h-4" /> บันทึกการค้นหา
                     </Button>
                 )}
@@ -411,10 +416,10 @@ export default function LeadSearchPage() {
 
                     <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-4">
                         {results.map(lead => (
-                            <LeadCard 
-                                key={lead.id} 
-                                lead={lead} 
-                                onAssign={handleAssign} 
+                            <LeadCard
+                                key={lead.id}
+                                lead={lead}
+                                onAssign={handleAssign}
                                 onAddToBoard={handleAddToBoard}
                                 isSelected={selectedLeads.has(lead.id)}
                                 onSelect={() => toggleSelectLead(lead.id)}
@@ -445,7 +450,7 @@ export default function LeadSearchPage() {
                             </div>
                             <p className="text-sm font-bold whitespace-nowrap">เลือกอยู่ {selectedLeads.size} ราย</p>
                         </div>
-                        
+
                         <div className="flex items-center gap-3">
                             <Button onClick={handleBulkAddToBoard} className="bg-blue-600 hover:bg-blue-700 h-10 gap-2 font-bold px-5">
                                 <Plus className="w-4 h-4" /> เพิ่มเข้า Pipeline
@@ -479,7 +484,7 @@ function LeadCard({ lead, onAssign, onAddToBoard, isSelected, onSelect }: {
     return (
         <Card className={`relative shadow-sm hover:shadow-xl transition-all border-2 group overflow-hidden ${isSelected ? 'border-blue-500 ring-4 ring-blue-50' : 'border-gray-100 hover:border-blue-200'}`}>
             {/* Multi-select check */}
-            <button 
+            <button
                 onClick={(e) => { e.stopPropagation(); onSelect(); }}
                 className={`absolute top-3 left-3 z-10 p-1.5 rounded-lg transition-all ${isSelected ? 'bg-blue-600 text-white' : 'bg-white/80 backdrop-blur-sm text-gray-300 opacity-0 group-hover:opacity-100 border border-gray-200 shadow-sm'}`}
             >
@@ -504,7 +509,7 @@ function LeadCard({ lead, onAssign, onAddToBoard, isSelected, onSelect }: {
                         <MapPin className="w-4 h-4 mt-0.5 flex-shrink-0 text-gray-400" />
                         <span className="text-xs leading-relaxed text-gray-500 font-medium">{lead.address}</span>
                     </div>
-                    
+
                     <div className="flex items-center justify-between px-1">
                         <div className="flex items-center gap-2">
                             <Phone className="w-3.5 h-3.5 text-gray-400" />

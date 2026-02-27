@@ -239,7 +239,7 @@ export default function SparkPage() {
                     <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                    <h1 className="text-xl font-bold text-gray-900">Spark AI</h1>
+                    <h1 className="text-xl font-black text-gray-900">Spark AI</h1>
                     <p className="text-xs text-gray-400">ถามข้อมูลธุรกิจของคุณได้ทันที</p>
                 </div>
             </div>

@@ -160,13 +160,18 @@ export default function DealFeedPage() {
     return (
         <div className="max-w-4xl mx-auto py-2">
             {/* Page header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-1">Deal Feed</h1>
-                <p className="text-sm text-gray-500">
-                    งานที่ตรงกับโปรไฟล์ของคุณ ·&nbsp;
-                    <span className="text-blue-600 font-medium">{highMatchCount} งาน Match สูง</span>
-                    &nbsp;จาก {RFQS.length} งานทั้งหมด
-                </p>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-green-500 to-emerald-600 flex items-center justify-center shadow-sm">
+                    <TrendingUp className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-black text-gray-900">Deal Feed</h1>
+                    <p className="text-sm text-gray-500">
+                        งานที่ตรงกับโปรไฟล์ของคุณ ·&nbsp;
+                        <span className="text-blue-600 font-medium">{highMatchCount} งาน Match สูง</span>
+                        &nbsp;จาก {RFQS.length} งานทั้งหมด
+                    </p>
+                </div>
             </div>
 
             {/* Stats row */}

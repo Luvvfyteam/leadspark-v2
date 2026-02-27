@@ -17,11 +17,12 @@ import { ACTIVITY_TYPE_CONFIG } from '@/lib/constants';
 import { mockUsers } from '@/lib/mock-data';
 import { getRelativeTime, formatCurrency } from '@/lib/utils';
 import { BoardStatus, ActivityType, Lead, BoardColumn, Activity } from '@/types';
+import { EmptyState } from '@/components/shared/EmptyState';
 import {
-    Search, Star, GripVertical, CalendarDays, User,
+    Search, Star, GripVertical, CalendarDays, User, Users,
     ArrowRight, Plus, MoreHorizontal, Edit2, Trash2,
     Phone, Mail, Globe, Facebook, MessageCircle, MapPin, ExternalLink,
-    Clock, CheckCircle2, X
+    Clock, CheckCircle2, X, Kanban, Filter, BarChart3, Sparkles, FilePlus
 } from 'lucide-react';
 
 function getScoreColor(score: number) {
@@ -39,9 +40,9 @@ interface MoveModalState {
 
 // ── Lead Card Component ───────────────────────────────────────────────────
 
-function LeadCard({ lead, provided, snapshot, onClick }: { 
-    lead: Lead; 
-    provided: any; 
+function LeadCard({ lead, provided, snapshot, onClick }: {
+    lead: Lead;
+    provided: any;
     snapshot: any;
     onClick: () => void;
 }) {
@@ -54,10 +55,10 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
             className={`group ${snapshot.isDragging ? 'rotate-2 shadow-lg' : ''}`}
         >
             <Card
-                className="shadow-sm cursor-pointer hover:shadow-md transition-all mb-2"
+                className="shadow-sm cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 mb-2 border-gray-100 rounded-xl"
                 onClick={onClick}
             >
-                <CardContent className="p-3">
+                <CardContent className="p-3.5">
                     <div className="flex items-start justify-between">
                         <div
                             {...provided.dragHandleProps}
@@ -66,14 +67,14 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
                             <GripVertical className="w-4 h-4" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <h4 className="text-sm font-semibold text-gray-900 truncate">
+                            <h4 className="text-sm font-bold text-gray-900 truncate group-hover:text-blue-600 transition-colors">
                                 {lead.business_name}
                             </h4>
                             <p className="text-[11px] text-gray-500 truncate mt-0.5">
                                 {lead.industry}
                             </p>
                         </div>
-                        <Badge className={`text-[10px] font-bold ml-1.5 flex-shrink-0 ${getScoreColor(lead.ai_score)}`}>
+                        <Badge className={`text-[10px] font-bold ml-1.5 flex-shrink-0 rounded-full px-2 shadow-sm ${getScoreColor(lead.ai_score)}`}>
                             {lead.ai_score}
                         </Badge>
                     </div>
@@ -81,19 +82,18 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
                     {/* Tags */}
                     <div className="flex flex-wrap gap-1 mt-2">
                         {lead.ai_tags.slice(0, 2).map((tag) => (
-                            <span key={tag} className="text-[10px] px-1.5 py-0.5 rounded bg-gray-100 text-gray-500">
+                            <span key={tag} className="text-[10px] px-2 py-0.5 rounded-full bg-gray-100 text-gray-600 font-medium">
                                 {tag}
                             </span>
                         ))}
                     </div>
 
                     {/* Footer */}
-                    <div className="flex items-center justify-between mt-2.5 pt-2 border-t border-gray-100">
-                        <UserAvatar
-                            name={getUserName(lead.assigned_to)}
-                            className="w-5 h-5 text-[9px]"
-                        />
-                        <span className="text-[10px] text-gray-400">
+                    <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
+                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
+                            {getUserName(lead.assigned_to).charAt(0)}
+                        </div>
+                        <span className="text-[10px] text-gray-400 font-medium">
                             {getRelativeTime(lead.updated_at)}
                         </span>
                     </div>
@@ -105,15 +105,15 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
 
 // ── Column Header Component ───────────────────────────────────────────────
 
-function ColumnHeader({ 
-    column, 
-    count, 
-    value, 
-    onUpdate, 
-    onDelete 
-}: { 
-    column: BoardColumn; 
-    count: number; 
+function ColumnHeader({
+    column,
+    count,
+    value,
+    onUpdate,
+    onDelete
+}: {
+    column: BoardColumn;
+    count: number;
     value: number;
     onUpdate: (title: string) => void;
     onDelete: () => void;
@@ -136,7 +136,7 @@ function ColumnHeader({
     return (
         <div className="flex flex-col mb-3 px-1 group/header">
             <div className="flex items-center gap-2">
-                <div className={`w-3 h-3 rounded-full ${column.color}`} />
+                <div className={`w-3.5 h-3.5 rounded-full ${column.color} shadow-sm`} />
                 {isEditing ? (
                     <input
                         ref={inputRef}
@@ -144,31 +144,32 @@ function ColumnHeader({
                         onChange={(e) => setTitle(e.target.value)}
                         onBlur={handleSave}
                         onKeyDown={(e) => e.key === 'Enter' && handleSave()}
-                        className="text-sm font-semibold bg-white border border-blue-300 rounded px-1 outline-none w-full"
+                        className="text-sm font-bold bg-white border border-blue-300 rounded-lg px-2 py-0.5 outline-none w-full"
                     />
                 ) : (
-                    <h3 
-                        className="text-sm font-semibold text-gray-900 cursor-text flex-1"
+                    <h3
+                        className="text-sm font-bold text-gray-900 cursor-text flex-1"
                         onDoubleClick={() => setIsEditing(true)}
                     >
                         {column.title}
                     </h3>
                 )}
-                
+                <Badge variant="secondary" className="text-[10px] px-1.5 py-0 font-bold">{count}</Badge>
+
                 <div className="flex items-center gap-1 opacity-0 group-hover/header:opacity-100 transition-opacity">
-                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-gray-200 rounded text-gray-400 hover:text-gray-600">
+                    <button onClick={() => setIsEditing(true)} className="p-1 hover:bg-gray-200 rounded-lg text-gray-400 hover:text-gray-600 transition-colors">
                         <Edit2 className="w-3 h-3" />
                     </button>
                     {column.id !== 'new' && column.id !== 'won' && (
-                        <button onClick={onDelete} className="p-1 hover:bg-red-100 rounded text-gray-400 hover:text-red-600">
+                        <button onClick={onDelete} className="p-1 hover:bg-red-100 rounded-lg text-gray-400 hover:text-red-600 transition-colors">
                             <Trash2 className="w-3 h-3" />
                         </button>
                     )}
                 </div>
             </div>
-            <div className="mt-1 flex items-center justify-between">
-                <span className="text-[11px] text-gray-400 font-medium">
-                    ({count}) · {value >= 1000 ? `฿${(value / 1000).toFixed(0)}K` : formatCurrency(value)}
+            <div className="mt-1.5 flex items-center justify-between">
+                <span className="text-[11px] text-gray-400 font-bold">
+                    {value >= 1000 ? `฿${(value / 1000).toFixed(0)}K` : formatCurrency(value)}
                 </span>
             </div>
         </div>
@@ -179,14 +180,14 @@ function ColumnHeader({
 
 export default function LeadBoardPage() {
     const router = useRouter();
-    const { 
-        leads, boardColumns, moveLeadToColumn, addActivity, updateLead, 
+    const {
+        leads, boardColumns, moveLeadToColumn, addActivity, updateLead,
         addBoardColumn, updateBoardColumn, removeBoardColumn, activities,
         tasks, toggleTask, convertLeadToCustomer
     } = useAppStore();
-    
+
     const { showToast } = useToast();
-    
+
     // UI States
     const [searchQuery, setSearchQuery] = useState('');
     const [showOnlyMine, setShowOnlyMine] = useState(false);
@@ -283,7 +284,7 @@ export default function LeadBoardPage() {
 
         const fromLabel = boardColumns.find((c) => c.id === moveModal.fromColumn)?.title;
         const toLabel = boardColumns.find((c) => c.id === moveModal.toColumn)?.title;
-        
+
         addActivity({
             id: `act-${Date.now() + 1}`,
             customer_id: '',
@@ -314,49 +315,57 @@ export default function LeadBoardPage() {
         setIsAddingColumn(false);
     };
 
-    const selectedLead = useMemo(() => 
+    const selectedLead = useMemo(() =>
         selectedLeadId ? (leads.find(l => l.id === selectedLeadId) ?? null) : null
-    , [selectedLeadId, leads]);
+        , [selectedLeadId, leads]);
 
     const getUserName = (id: string) => mockUsers.find((u) => u.id === id)?.name || '';
 
-import { EmptyState } from '@/components/shared/EmptyState';
-import { Kanban, Filter } from 'lucide-react';
-
-// ... (existing code)
-
     return (
-        <div className="max-w-[1600px] mx-auto space-y-4">
-            {/* Toolbar */}
-            <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
-                <div className="flex items-center gap-3 flex-1 w-full">
-                    <div className="relative flex-1 max-w-sm">
-                        <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
-                        <Input
-                            placeholder="ค้นหาชื่อธุรกิจ..."
-                            value={searchQuery}
-                            onChange={(e) => setSearchQuery(e.target.value)}
-                            className="pl-9 h-9"
-                        />
+        <div className="max-w-[1600px] mx-auto space-y-6">
+            {/* Header */}
+            <div className="flex flex-col gap-4">
+                <div className="flex items-center gap-3">
+                    <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-600 to-indigo-600 flex items-center justify-center shadow-sm">
+                        <Kanban className="w-5 h-5 text-white" />
                     </div>
-                    <button
-                        onClick={() => setShowOnlyMine(!showOnlyMine)}
-                        className={`h-9 px-3 text-xs font-medium rounded-lg transition-colors flex items-center gap-2 ${showOnlyMine
-                            ? 'bg-blue-100 text-blue-700 border border-blue-200'
-                            : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
-                            }`}
-                    >
-                        <User className="w-3.5 h-3.5" />
-                        เฉพาะของฉัน
-                    </button>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">Pipeline</h1>
+                        <p className="text-sm text-gray-500 mt-0.5">จัดการลีดและสถานะการขาย</p>
+                    </div>
                 </div>
-                <div className="flex items-center gap-2">
-                    <Button size="sm" variant="outline" className="h-9">
-                        <Filter className="w-3.5 h-3.5 mr-2" /> ตัวกรอง
-                    </Button>
-                    <Button size="sm" className="h-9 bg-blue-600 hover:bg-blue-700">
-                        <Plus className="w-3.5 h-3.5 mr-2" /> ลีดใหม่
-                    </Button>
+
+                {/* Toolbar */}
+                <div className="flex flex-col sm:flex-row gap-3 items-center justify-between">
+                    <div className="flex items-center gap-3 flex-1 w-full">
+                        <div className="relative flex-1 max-w-sm">
+                            <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+                            <Input
+                                placeholder="ค้นหาชื่อธุรกิจ..."
+                                value={searchQuery}
+                                onChange={(e) => setSearchQuery(e.target.value)}
+                                className="pl-9 h-9 rounded-xl"
+                            />
+                        </div>
+                        <button
+                            onClick={() => setShowOnlyMine(!showOnlyMine)}
+                            className={`h-9 px-3 text-xs font-bold rounded-xl transition-all duration-200 flex items-center gap-2 ${showOnlyMine
+                                ? 'bg-blue-100 text-blue-700 border border-blue-200 shadow-sm'
+                                : 'bg-white text-gray-600 border border-gray-200 hover:bg-gray-50'
+                                }`}
+                        >
+                            <User className="w-3.5 h-3.5" />
+                            เฉพาะของฉัน
+                        </button>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Button size="sm" variant="outline" className="h-9 rounded-xl">
+                            <Filter className="w-3.5 h-3.5 mr-2" /> ตัวกรอง
+                        </Button>
+                        <Button size="sm" className="h-9 bg-blue-600 hover:bg-blue-700 rounded-xl shadow-sm">
+                            <Plus className="w-3.5 h-3.5 mr-2" /> ลีดใหม่
+                        </Button>
+                    </div>
                 </div>
             </div>
 
@@ -375,8 +384,8 @@ import { Kanban, Filter } from 'lucide-react';
                         <div className="flex gap-4 min-w-max pb-4">
                             {boardColumns.map((column) => (
                                 <div key={column.id} className="w-72 flex flex-col">
-                                    <ColumnHeader 
-                                        column={column} 
+                                    <ColumnHeader
+                                        column={column}
                                         count={columnData[column.id]?.leads.length || 0}
                                         value={columnData[column.id]?.totalValue || 0}
                                         onUpdate={(title) => updateBoardColumn(column.id, { title })}
@@ -394,10 +403,10 @@ import { Kanban, Filter } from 'lucide-react';
                                                 {columnData[column.id]?.leads.map((lead, index) => (
                                                     <Draggable key={lead.id} draggableId={lead.id} index={index}>
                                                         {(p, s) => (
-                                                            <LeadCard 
-                                                                lead={lead} 
-                                                                provided={p} 
-                                                                snapshot={s} 
+                                                            <LeadCard
+                                                                lead={lead}
+                                                                provided={p}
+                                                                snapshot={s}
                                                                 onClick={() => setSelectedLeadId(lead.id)}
                                                             />
                                                         )}
@@ -451,7 +460,7 @@ import { Kanban, Filter } from 'lucide-react';
                 footer={
                     <div className="flex gap-2 w-full">
                         {selectedLead?.board_status === 'won' ? (
-                            <Button 
+                            <Button
                                 className="flex-1 bg-green-600 hover:bg-green-700"
                                 onClick={() => {
                                     const custId = convertLeadToCustomer(selectedLead.id);
@@ -464,7 +473,7 @@ import { Kanban, Filter } from 'lucide-react';
                                 <Users className="w-4 h-4 mr-2" /> ดูข้อมูลลูกค้า
                             </Button>
                         ) : (
-                            <Button 
+                            <Button
                                 className="flex-1 bg-blue-600 hover:bg-blue-700"
                                 onClick={() => {
                                     if (selectedLead) {
@@ -485,7 +494,7 @@ import { Kanban, Filter } from 'lucide-react';
                 {selectedLead && (() => {
                     const leadActivities = activities.filter(a => a.lead_id === selectedLead.id).sort((a, b) => b.created_at.localeCompare(a.created_at));
                     const leadTasks = tasks.filter(t => t.customer_id === null && t.title.includes(selectedLead.business_name));
-                    
+
                     return (
                         <div className="space-y-6">
                             {/* AI Score Breakdown */}
@@ -632,8 +641,8 @@ import { Kanban, Filter } from 'lucide-react';
                         </div>
 
                         {moveModal.toColumn === 'won' && moveModal.lead?.converted_customer_id && (
-                            <Button 
-                                variant="outline" 
+                            <Button
+                                variant="outline"
                                 className="w-full text-blue-600 border-blue-200 bg-blue-50 hover:bg-blue-100 flex items-center justify-center gap-2"
                                 onClick={() => router.push(`/documents?customer_id=${moveModal.lead?.converted_customer_id}&type=quotation`)}
                             >
@@ -644,7 +653,7 @@ import { Kanban, Filter } from 'lucide-react';
                         {moveModal.toColumn === 'lost' && (
                             <div className="bg-red-50 p-3 rounded-lg border border-red-100">
                                 <p className="text-xs font-semibold text-red-700 mb-1">ทำไมดีลนี้ถึงไม่สำเร็จ? *</p>
-                                <select 
+                                <select
                                     className="w-full px-3 py-2 border rounded-lg text-sm bg-white border-red-200"
                                     onChange={(e) => setModalNote(`[ไม่สำเร็จ] ${e.target.value}: ${modalNote}`)}
                                 >

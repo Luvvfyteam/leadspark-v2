@@ -131,9 +131,14 @@ export default function ProposalsPage() {
     return (
         <div className="max-w-3xl mx-auto py-2">
             {/* Header */}
-            <div className="mb-6">
-                <h1 className="text-2xl font-semibold text-gray-900 mb-1">ข้อเสนอ</h1>
-                <p className="text-sm text-gray-500">ติดตามข้อเสนอที่ส่งออกและรับเข้า</p>
+            <div className="flex items-center gap-3 mb-6">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center shadow-sm">
+                    <Send className="w-5 h-5 text-white" />
+                </div>
+                <div>
+                    <h1 className="text-2xl font-black text-gray-900">ข้อเสนอ</h1>
+                    <p className="text-sm text-gray-500">ติดตามข้อเสนอที่ส่งออกและรับเข้า</p>
+                </div>
             </div>
 
             {/* Tabs */}

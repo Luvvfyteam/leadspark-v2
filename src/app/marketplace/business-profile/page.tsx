@@ -171,7 +171,7 @@ function ProfileHeader({ profile, editMode, onEdit }: {
                                     onChange={e => onEdit('businessName', e.target.value)}
                                 />
                             ) : (
-                                <h1 className="text-xl font-semibold text-gray-900 mb-1">{profile.businessName}</h1>
+                                <h1 className="text-xl font-black text-gray-900 mb-1">{profile.businessName}</h1>
                             )}
                             <div className="flex items-center gap-2 flex-wrap">
                                 <span className="text-xs px-2.5 py-0.5 bg-gray-100 text-gray-600 rounded-full font-medium">

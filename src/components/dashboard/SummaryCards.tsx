@@ -31,13 +31,10 @@ export function SummaryCards() {
         : 0;
 
     // ── expand panel data ────────────────────────────────────────
-
-    // Top 5 leads by AI score
     const topLeads = [...leads]
         .sort((a, b) => b.ai_score - a.ai_score)
         .slice(0, 5);
 
-    // Top 5 active customers sorted by last activity (oldest first = needs attention)
     const getLastActivity = (customerId: string) => {
         const acts = activities.filter((a) => a.customer_id === customerId);
         if (acts.length === 0) return null;
@@ -49,14 +46,11 @@ export function SummaryCards() {
         .sort((a, b) => {
             const ta = a.lastAct ? new Date(a.lastAct.created_at).getTime() : 0;
             const tb = b.lastAct ? new Date(b.lastAct.created_at).getTime() : 0;
-            return ta - tb; // oldest activity first
+            return ta - tb;
         })
         .slice(0, 5);
 
-    // Top 5 tasks (overdue first, then today)
     const topTasks = [...overdueTasks, ...todayTasks.filter((t) => t.due_date === TODAY)].slice(0, 5);
-
-    // Top 3 deals by value
     const topDeals = [...completedDeals].sort((a, b) => b.value - a.value).slice(0, 3);
 
     // ── card config ──────────────────────────────────────────────
@@ -67,7 +61,7 @@ export function SummaryCards() {
             value: newLeadsThisMonth.toString(),
             subtitle: 'จากการค้นหา',
             icon: Users,
-            iconBg: 'bg-blue-50',
+            iconBg: 'bg-gradient-to-br from-blue-50 to-blue-100',
             iconColor: 'text-blue-600',
         },
         {
@@ -76,7 +70,7 @@ export function SummaryCards() {
             value: activeCustomers.toString(),
             subtitle: 'ราย',
             icon: UserCheck,
-            iconBg: 'bg-green-50',
+            iconBg: 'bg-gradient-to-br from-green-50 to-emerald-100',
             iconColor: 'text-green-600',
         },
         {
@@ -84,9 +78,9 @@ export function SummaryCards() {
             title: 'งานวันนี้',
             value: todayTasks.length.toString(),
             subtitle: overdueTasks.length > 0 ? `${overdueTasks.length} เกินกำหนด` : 'ไม่มีเกินกำหนด',
-            subtitleColor: overdueTasks.length > 0 ? 'text-red-600' : 'text-gray-500',
+            subtitleColor: overdueTasks.length > 0 ? 'text-red-600 font-bold' : 'text-gray-400',
             icon: CheckSquare,
-            iconBg: 'bg-orange-50',
+            iconBg: 'bg-gradient-to-br from-orange-50 to-amber-100',
             iconColor: 'text-orange-600',
         },
         {
@@ -95,7 +89,7 @@ export function SummaryCards() {
             value: formatCurrency(totalRevenue),
             subtitle: `${revenuePercent}% ของเป้า`,
             icon: TrendingUp,
-            iconBg: 'bg-emerald-50',
+            iconBg: 'bg-gradient-to-br from-emerald-50 to-green-100',
             iconColor: 'text-emerald-600',
         },
     ];
@@ -111,49 +105,53 @@ export function SummaryCards() {
                 return (
                     <div key={card.key} className="flex flex-col">
                         <Card
-                            className="shadow-sm cursor-pointer hover:shadow-md transition-shadow select-none"
+                            className="shadow-sm cursor-pointer hover:shadow-lg hover:-translate-y-0.5 transition-all duration-200 select-none border-gray-100"
                             onClick={() => handleCardClick(card.key)}
                         >
-                            <CardContent className="p-4">
+                            <CardContent className="p-5">
                                 <div className="flex items-start justify-between">
                                     <div className="min-w-0">
-                                        <p className="text-sm text-gray-500">{card.title}</p>
-                                        <p className="text-2xl font-bold text-gray-900 mt-1 truncate">
+                                        <p className="text-[10px] font-bold text-gray-400 uppercase tracking-wider">{card.title}</p>
+                                        <p className="text-3xl font-black text-gray-900 mt-2 truncate">
                                             {card.value}
                                         </p>
-                                        <p className={`text-xs mt-1 ${card.subtitleColor || 'text-gray-500'}`}>
+                                        <p className={`text-xs mt-1.5 ${card.subtitleColor || 'text-gray-400'}`}>
                                             {card.subtitle}
                                         </p>
                                     </div>
-                                    <div className="flex flex-col items-end gap-2 shrink-0">
-                                        <div className={`p-2.5 rounded-lg ${card.iconBg}`}>
+                                    <div className="flex flex-col items-end gap-3 shrink-0">
+                                        <div className={`p-2.5 rounded-xl ${card.iconBg}`}>
                                             <card.icon className={`w-5 h-5 ${card.iconColor}`} />
                                         </div>
-                                        {isExpanded
-                                            ? <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
-                                            : <ChevronRight className="w-3.5 h-3.5 text-gray-400" />}
+                                        <div className="text-gray-300">
+                                            {isExpanded
+                                                ? <ChevronDown className="w-3.5 h-3.5" />
+                                                : <ChevronRight className="w-3.5 h-3.5" />}
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>
                         </Card>
 
                         {/* ── Expand panel ── */}
-                        {isExpanded && (
-                            <div className="mt-1 rounded-lg border border-gray-200 bg-white shadow-sm overflow-hidden animate-in fade-in-0 slide-in-from-top-2 duration-200">
+                        <div
+                            className={`overflow-hidden transition-all duration-300 ease-out ${isExpanded ? 'max-h-96 opacity-100 mt-1.5' : 'max-h-0 opacity-0 mt-0'
+                                }`}
+                        >
+                            <div className="rounded-xl border border-gray-100 bg-white shadow-sm overflow-hidden">
                                 <div className="divide-y divide-gray-50">
                                     {card.key === 'leads' && (
                                         <>
                                             {topLeads.map((lead) => (
                                                 <div
                                                     key={lead.id}
-                                                    className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50"
+                                                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 transition-colors"
                                                 >
-                                                    <span className="text-sm text-gray-800 truncate">{lead.business_name}</span>
-                                                    <span className={`text-xs font-semibold px-1.5 py-0.5 rounded shrink-0 ml-2 ${
-                                                        lead.ai_score >= 80 ? 'bg-red-100 text-red-700' :
-                                                        lead.ai_score >= 50 ? 'bg-amber-100 text-amber-700' :
-                                                        'bg-blue-100 text-blue-700'
-                                                    }`}>
+                                                    <span className="text-sm font-medium text-gray-800 truncate">{lead.business_name}</span>
+                                                    <span className={`text-[10px] font-black px-2 py-0.5 rounded-full shrink-0 ml-2 ${lead.ai_score >= 80 ? 'bg-red-100 text-red-700' :
+                                                            lead.ai_score >= 50 ? 'bg-amber-100 text-amber-700' :
+                                                                'bg-blue-100 text-blue-700'
+                                                        }`}>
                                                         {lead.ai_score}
                                                     </span>
                                                 </div>
@@ -166,16 +164,16 @@ export function SummaryCards() {
                                             {customersNeedingFollowUp.map(({ customer, lastAct }) => (
                                                 <div
                                                     key={customer.id}
-                                                    className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50 cursor-pointer"
+                                                    className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 cursor-pointer transition-colors"
                                                     onClick={(e) => { e.stopPropagation(); router.push(`/customers/${customer.id}`); }}
                                                 >
                                                     <div className="min-w-0">
-                                                        <p className="text-sm text-gray-800 truncate">{customer.business_name}</p>
-                                                        <p className="text-xs text-gray-400">
+                                                        <p className="text-sm font-medium text-gray-800 truncate">{customer.business_name}</p>
+                                                        <p className="text-[10px] text-gray-400 mt-0.5">
                                                             {lastAct ? getRelativeTime(lastAct.created_at) : 'ยังไม่มีกิจกรรม'}
                                                         </p>
                                                     </div>
-                                                    <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ml-2 ${CUSTOMER_STATUS_CONFIG[customer.status]?.color || 'text-gray-500'}`}>
+                                                    <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ml-2 bg-gray-100 ${CUSTOMER_STATUS_CONFIG[customer.status]?.color || 'text-gray-500'}`}>
                                                         {CUSTOMER_STATUS_CONFIG[customer.status]?.label}
                                                     </span>
                                                 </div>
@@ -186,15 +184,15 @@ export function SummaryCards() {
                                     {card.key === 'tasks' && (
                                         <>
                                             {topTasks.length === 0 ? (
-                                                <p className="px-4 py-3 text-sm text-gray-400">🎉 ไม่มีงานวันนี้</p>
+                                                <p className="px-4 py-4 text-sm text-gray-400 text-center">🎉 ไม่มีงานวันนี้</p>
                                             ) : topTasks.map((task) => {
                                                 const catConfig = TASK_CATEGORY_CONFIG[task.category];
                                                 const isOverdue = task.due_date < TODAY;
                                                 return (
-                                                    <div key={task.id} className="flex items-center gap-2 px-4 py-2.5 hover:bg-gray-50">
+                                                    <div key={task.id} className="flex items-center gap-2.5 px-4 py-3 hover:bg-gray-50/80 transition-colors">
                                                         <div className={`w-1.5 h-1.5 rounded-full shrink-0 ${isOverdue ? 'bg-red-500' : 'bg-blue-500'}`} />
-                                                        <span className="text-sm text-gray-800 truncate flex-1">{task.title}</span>
-                                                        <span className={`text-[10px] px-1.5 py-0.5 rounded shrink-0 ${catConfig?.color || 'bg-gray-100 text-gray-600'}`}>
+                                                        <span className="text-sm font-medium text-gray-800 truncate flex-1">{task.title}</span>
+                                                        <span className={`text-[10px] font-bold px-2 py-0.5 rounded-full shrink-0 ${catConfig?.color || 'bg-gray-100 text-gray-600'}`}>
                                                             {catConfig?.label}
                                                         </span>
                                                     </div>
@@ -206,13 +204,13 @@ export function SummaryCards() {
                                     {card.key === 'revenue' && (
                                         <>
                                             {topDeals.length === 0 ? (
-                                                <p className="px-4 py-3 text-sm text-gray-400">ยังไม่มีดีลปิดเดือนนี้</p>
+                                                <p className="px-4 py-4 text-sm text-gray-400 text-center">ยังไม่มีดีลปิดเดือนนี้</p>
                                             ) : topDeals.map((deal) => {
                                                 const custName = customers.find((c) => c.id === deal.customer_id)?.business_name || '—';
                                                 return (
-                                                    <div key={deal.id} className="flex items-center justify-between px-4 py-2.5 hover:bg-gray-50">
-                                                        <span className="text-sm text-gray-800 truncate">{custName}</span>
-                                                        <span className="text-sm font-semibold text-emerald-700 shrink-0 ml-2">
+                                                    <div key={deal.id} className="flex items-center justify-between px-4 py-3 hover:bg-gray-50/80 transition-colors">
+                                                        <span className="text-sm font-medium text-gray-800 truncate">{custName}</span>
+                                                        <span className="text-sm font-bold text-emerald-700 shrink-0 ml-2">
                                                             {formatCurrency(deal.value)}
                                                         </span>
                                                     </div>
@@ -222,8 +220,8 @@ export function SummaryCards() {
                                     )}
                                 </div>
 
-                                {/* Footer: ดูทั้งหมด */}
-                                <div className="border-t border-gray-100 px-4 py-2">
+                                {/* Footer */}
+                                <div className="border-t border-gray-50 px-4 py-2.5">
                                     <button
                                         onClick={(e) => {
                                             e.stopPropagation();
@@ -235,13 +233,13 @@ export function SummaryCards() {
                                             };
                                             router.push(hrefs[card.key]);
                                         }}
-                                        className="text-xs text-blue-600 hover:text-blue-800 font-medium"
+                                        className="text-[10px] text-blue-600 hover:text-blue-800 font-bold uppercase tracking-wider"
                                     >
                                         ดูทั้งหมด →
                                     </button>
                                 </div>
                             </div>
-                        )}
+                        </div>
                     </div>
                 );
             })}

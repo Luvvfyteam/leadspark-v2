@@ -55,14 +55,14 @@ export function TodayTasks() {
 
     return (
         <>
-            <Card className="shadow-sm">
+            <Card className="shadow-sm border-gray-100">
                 <CardHeader className="pb-3">
                     <CardTitle className="text-base font-semibold flex items-center gap-2">
-                        <Clock className="w-4 h-4 text-gray-500" />
+                        <Clock className="w-4 h-4 text-blue-500" />
                         งานวันนี้
-                        <Badge variant="secondary" className="ml-1 text-xs">
+                        <span className="inline-flex items-center justify-center rounded-full bg-blue-600 text-white text-[10px] font-bold w-6 h-6 ml-1">
                             {allActive.length}
-                        </Badge>
+                        </span>
                     </CardTitle>
                 </CardHeader>
                 <CardContent className="pt-0 space-y-1">
@@ -83,7 +83,7 @@ export function TodayTasks() {
                                         key={task.id}
                                         checked={task.is_completed}
                                         onConfirm={(note) => handleConfirm(task.id, task.title, note)}
-                                        onCancel={() => {}}
+                                        onCancel={() => { }}
                                     >
                                         <div className="flex items-start justify-between gap-2">
                                             <div className="min-w-0 flex-1">
@@ -128,26 +128,26 @@ export function TodayTasks() {
 
                             {/* Completed today — collapsible */}
                             {completedToday.length > 0 && (
-                                <div className="mt-2 border-t border-gray-100 pt-2">
+                                <div className="mt-3 border-t border-gray-100 pt-2">
                                     <button
                                         onClick={() => setShowCompleted((v) => !v)}
-                                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full"
+                                        className="flex items-center gap-1.5 text-xs text-gray-400 hover:text-gray-600 transition-colors w-full py-1"
                                     >
                                         {showCompleted
                                             ? <ChevronDown className="w-3 h-3" />
                                             : <ChevronRight className="w-3 h-3" />}
                                         เสร็จแล้ววันนี้ ({completedToday.length})
                                     </button>
-                                    {showCompleted && (
-                                        <div className="mt-1.5 space-y-1">
+                                    <div className={`overflow-hidden transition-all duration-300 ease-out ${showCompleted ? 'max-h-96 opacity-100' : 'max-h-0 opacity-0'}`}>
+                                        <div className="mt-1.5 space-y-0.5">
                                             {completedToday.map((task) => (
-                                                <div key={task.id} className="flex items-center gap-3 px-2.5 py-1.5 opacity-60">
+                                                <div key={task.id} className="flex items-center gap-3 px-2.5 py-2 opacity-50 rounded-lg">
                                                     <input type="checkbox" checked readOnly className="w-4 h-4 rounded border-gray-300 text-blue-600" />
                                                     <span className="text-sm text-gray-500 line-through truncate">{task.title}</span>
                                                 </div>
                                             ))}
                                         </div>
-                                    )}
+                                    </div>
                                 </div>
                             )}
                         </>

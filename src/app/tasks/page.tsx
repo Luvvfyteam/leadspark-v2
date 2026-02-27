@@ -11,10 +11,11 @@ import { useToast } from '@/components/ui/toast';
 import { usePermissions } from '@/lib/usePermissions';
 import { CheckboxActionBar } from '@/components/shared/CheckboxActionBar';
 import { SlideOverPanel } from '@/components/shared/SlideOverPanel';
+import { EmptyState } from '@/components/shared/EmptyState';
 import { Task, TaskCategory, TaskComment } from '@/types';
 import Link from 'next/link';
 import {
-    Plus, Calendar, User, Building2, List,
+    Plus, Calendar, User, Building2, List, CheckSquare,
     AlertTriangle, Clock, ChevronDown, ChevronRight, ChevronUp, X, MessageSquare,
     CheckCircle2, Undo2, Send, Trash2, Save,
 } from 'lucide-react';
@@ -146,33 +147,33 @@ function TaskRow({ task, customers, users, commentCount, onClickName, onConfirm 
     const isOverdue = !task.is_completed && task.due_date < TODAY;
 
     return (
-        <CheckboxActionBar checked={task.is_completed} onConfirm={onConfirm} onCancel={() => {}}>
-            <div className="flex items-center gap-2 flex-1 min-w-0">
+        <CheckboxActionBar checked={task.is_completed} onConfirm={onConfirm} onCancel={() => { }}>
+            <div className="flex items-center gap-2.5 flex-1 min-w-0">
                 <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-1.5 flex-wrap">
+                    <div className="flex items-center gap-2 flex-wrap">
                         <button
                             onClick={onClickName}
-                            className="text-sm font-medium text-gray-900 hover:text-blue-600 text-left truncate"
+                            className="text-sm font-semibold text-gray-900 hover:text-blue-600 text-left truncate transition-colors"
                         >
                             {task.title}
                         </button>
                         {isOverdue && (
-                            <span className="text-[10px] text-red-500 shrink-0 flex items-center gap-0.5">
+                            <span className="text-[10px] font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full shrink-0 flex items-center gap-0.5">
                                 <AlertTriangle className="w-3 h-3" /> เกินกำหนด
                             </span>
                         )}
                     </div>
-                    <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <div className="flex items-center gap-2 mt-1 flex-wrap">
                         {customer && (
                             <Link
                                 href={`/customers/${customer.id}`}
                                 onClick={(e) => e.stopPropagation()}
-                                className="text-xs text-blue-500 hover:underline"
+                                className="text-xs font-medium text-blue-600 hover:underline"
                             >
                                 {customer.business_name}
                             </Link>
                         )}
-                        <Badge className={`text-[10px] px-1.5 py-0 leading-4 ${cat.color}`}>{cat.label}</Badge>
+                        <Badge className={`text-[10px] font-bold px-2 py-0.5 rounded-full leading-4 ${cat.color}`}>{cat.label}</Badge>
                         {commentCount > 0 && (
                             <span className="flex items-center gap-0.5 text-xs text-gray-400">
                                 <MessageSquare className="w-3 h-3" />{commentCount}
@@ -180,11 +181,11 @@ function TaskRow({ task, customers, users, commentCount, onClickName, onConfirm 
                         )}
                     </div>
                 </div>
-                <div className="flex items-center gap-1.5 shrink-0">
-                    <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold">
+                <div className="flex items-center gap-2 shrink-0">
+                    <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-[10px] font-bold shadow-sm">
                         {user?.name.charAt(0) || '?'}
                     </div>
-                    <span className="text-xs text-gray-400 hidden md:inline">
+                    <span className="text-[10px] text-gray-400 hidden md:inline font-medium">
                         {new Date(task.due_date).toLocaleDateString('th-TH', { day: 'numeric', month: 'short' })}
                     </span>
                 </div>
@@ -687,25 +688,25 @@ export default function TasksPage() {
             const isCollapsed = collapsed[section.key];
 
             return (
-                <div key={section.key} className="mb-4">
+                <div key={section.key} className="mb-5">
                     {/* Section header */}
-                    <div className={`flex items-center justify-between px-4 py-2.5 rounded-lg border ${section.bgColor} transition-colors`}>
+                    <div className={`flex items-center justify-between px-4 py-3 rounded-xl border ${section.bgColor} transition-colors`}>
                         <button
                             onClick={() => toggle(section.key)}
                             className="flex items-center gap-2 flex-1 min-w-0"
                         >
                             <section.icon className={`w-4 h-4 ${section.color} shrink-0`} />
-                            <span className={`text-sm font-semibold ${section.color}`}>{section.label}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5">{active.length}</Badge>
+                            <span className={`text-sm font-bold ${section.color}`}>{section.label}</span>
+                            <span className={`inline-flex items-center justify-center rounded-full w-6 h-6 text-[10px] font-bold ${section.key === 'overdue' ? 'bg-red-600 text-white' : section.key === 'today' ? 'bg-blue-600 text-white' : 'bg-gray-200 text-gray-600'}`}>{active.length}</span>
                             {completed.length > 0 && (
-                                <span className="text-[10px] text-gray-400">· {completed.length} เสร็จ</span>
+                                <span className="text-[10px] text-gray-400 font-medium">· {completed.length} เสร็จ</span>
                             )}
                         </button>
                         <div className="flex items-center gap-1 shrink-0">
                             {/* P1-7: Quick add button */}
                             <button
                                 onClick={() => setQuickAddSection(quickAddSection === section.key ? null : section.key)}
-                                className="p-1 rounded hover:bg-white/60 text-gray-400 hover:text-gray-600 transition-colors"
+                                className="p-1.5 rounded-lg hover:bg-white/60 text-gray-400 hover:text-gray-600 transition-colors"
                                 title="เพิ่มงานด่วน"
                             >
                                 <Plus className="w-3.5 h-3.5" />
@@ -716,8 +717,8 @@ export default function TasksPage() {
                         </div>
                     </div>
 
-                    {!isCollapsed && (
-                        <Card className="mt-1 shadow-sm overflow-hidden">
+                    <div className={`overflow-hidden transition-all duration-300 ease-out ${!isCollapsed ? 'max-h-[2000px] opacity-100 mt-1.5' : 'max-h-0 opacity-0 mt-0'}`}>
+                        <Card className="shadow-sm overflow-hidden border-gray-100">
                             <CardContent className="p-0">
                                 {/* P1-7: Inline quick add input */}
                                 {quickAddSection === section.key && (
@@ -745,34 +746,32 @@ export default function TasksPage() {
                                     <div className="border-t border-gray-100">
                                         <button
                                             onClick={() => toggle(`done-${section.key}`)}
-                                            className="flex items-center gap-1.5 px-4 py-2 w-full text-xs text-gray-400 hover:text-gray-600 transition-colors"
+                                            className="flex items-center gap-1.5 px-4 py-2.5 w-full text-xs text-gray-400 hover:text-gray-600 transition-colors"
                                         >
                                             {isDoneCollapsed(section.key)
                                                 ? <ChevronRight className="w-3 h-3" />
                                                 : <ChevronDown className="w-3 h-3" />}
                                             เสร็จแล้ว ({completed.length})
                                         </button>
-                                        {!isDoneCollapsed(section.key) && (
-                                            <div>
-                                                {completed.map((t) => (
-                                                    <CompletedTaskRow
-                                                        key={t.id}
-                                                        task={t}
-                                                        customers={custList}
-                                                        onClickName={() => setSelectedTaskId(t.id)}
-                                                        onUndo={() => {
-                                                            toggleTask(t.id);
-                                                            showToast(`"${t.title}" ยกเลิกแล้ว`, () => toggleTask(t.id));
-                                                        }}
-                                                    />
-                                                ))}
-                                            </div>
-                                        )}
+                                        <div className={`overflow-hidden transition-all duration-300 ease-out ${!isDoneCollapsed(section.key) ? 'max-h-[1000px] opacity-100' : 'max-h-0 opacity-0'}`}>
+                                            {completed.map((t) => (
+                                                <CompletedTaskRow
+                                                    key={t.id}
+                                                    task={t}
+                                                    customers={custList}
+                                                    onClickName={() => setSelectedTaskId(t.id)}
+                                                    onUndo={() => {
+                                                        toggleTask(t.id);
+                                                        showToast(`"${t.title}" ยกเลิกแล้ว`, () => toggleTask(t.id));
+                                                    }}
+                                                />
+                                            ))}
+                                        </div>
                                     </div>
                                 )}
                             </CardContent>
                         </Card>
-                    )}
+                    </div>
                 </div>
             );
         });
@@ -790,26 +789,26 @@ export default function TasksPage() {
             const user = users.find((u) => u.id === userId);
             const isCollapsed = collapsed[userId];
             return (
-                <div key={userId} className="mb-4">
-                    <button onClick={() => toggle(userId)} className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg border bg-gray-50 border-gray-200">
-                        <div className="flex items-center gap-2">
-                            <div className="w-7 h-7 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold">
+                <div key={userId} className="mb-5">
+                    <button onClick={() => toggle(userId)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl border bg-gray-50 border-gray-100 hover:bg-gray-100/60 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                            <div className="w-8 h-8 rounded-full bg-gradient-to-br from-blue-400 to-blue-600 flex items-center justify-center text-white text-xs font-bold shadow-sm">
                                 {user?.name.charAt(0) || '?'}
                             </div>
-                            <span className="text-sm font-semibold text-gray-700">{user?.name || userId}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5">{userTasks.length} งาน</Badge>
+                            <span className="text-sm font-bold text-gray-800">{user?.name || userId}</span>
+                            <span className="inline-flex items-center justify-center rounded-full bg-blue-600 text-white w-6 h-6 text-[10px] font-bold">{userTasks.length}</span>
                         </div>
                         {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
                     </button>
-                    {!isCollapsed && (
-                        <Card className="mt-1 shadow-sm overflow-hidden">
+                    <div className={`overflow-hidden transition-all duration-300 ease-out ${!isCollapsed ? 'max-h-[2000px] opacity-100 mt-1.5' : 'max-h-0 opacity-0 mt-0'}`}>
+                        <Card className="shadow-sm overflow-hidden border-gray-100">
                             <CardContent className="p-0">
                                 {userTasks.map((t) => (
                                     <TaskRow key={t.id} task={t} customers={custList} users={users} commentCount={commentCounts[t.id] || 0} onClickName={() => setSelectedTaskId(t.id)} onConfirm={makeConfirmHandler(t)} />
                                 ))}
                             </CardContent>
                         </Card>
-                    )}
+                    </div>
                 </div>
             );
         });
@@ -830,24 +829,26 @@ export default function TasksPage() {
             const label = cust ? cust.business_name : 'ไม่ระบุลูกค้า';
             const isCollapsed = collapsed[custId];
             return (
-                <div key={custId} className="mb-4">
-                    <button onClick={() => toggle(custId)} className="w-full flex items-center justify-between px-4 py-2.5 rounded-lg border bg-gray-50 border-gray-200">
-                        <div className="flex items-center gap-2">
-                            <Building2 className="w-4 h-4 text-gray-400" />
-                            <span className="text-sm font-semibold text-gray-700">{label}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5">{custTasks.length}</Badge>
+                <div key={custId} className="mb-5">
+                    <button onClick={() => toggle(custId)} className="w-full flex items-center justify-between px-4 py-3 rounded-xl border bg-gray-50 border-gray-100 hover:bg-gray-100/60 transition-colors">
+                        <div className="flex items-center gap-2.5">
+                            <div className="p-1.5 rounded-lg bg-blue-50">
+                                <Building2 className="w-4 h-4 text-blue-500" />
+                            </div>
+                            <span className="text-sm font-bold text-gray-800">{label}</span>
+                            <span className="inline-flex items-center justify-center rounded-full bg-blue-600 text-white w-6 h-6 text-[10px] font-bold">{custTasks.length}</span>
                         </div>
                         {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
                     </button>
-                    {!isCollapsed && (
-                        <Card className="mt-1 shadow-sm overflow-hidden">
+                    <div className={`overflow-hidden transition-all duration-300 ease-out ${!isCollapsed ? 'max-h-[2000px] opacity-100 mt-1.5' : 'max-h-0 opacity-0 mt-0'}`}>
+                        <Card className="shadow-sm overflow-hidden border-gray-100">
                             <CardContent className="p-0">
                                 {custTasks.map((t) => (
                                     <TaskRow key={t.id} task={t} customers={custList} users={users} commentCount={commentCounts[t.id] || 0} onClickName={() => setSelectedTaskId(t.id)} onConfirm={makeConfirmHandler(t)} />
                                 ))}
                             </CardContent>
                         </Card>
-                    )}
+                    </div>
                 </div>
             );
         });
@@ -856,7 +857,7 @@ export default function TasksPage() {
     // ── renderAll ───────────────────────────────────────────────────────────
 
     const renderAll = () => (
-        <Card className="shadow-sm overflow-hidden">
+        <Card className="shadow-sm overflow-hidden border-gray-100">
             <CardContent className="p-0">
                 {activeTasks.map((t) => (
                     <TaskRow key={t.id} task={t} customers={custList} users={users} commentCount={commentCounts[t.id] || 0} onClickName={() => setSelectedTaskId(t.id)} onConfirm={makeConfirmHandler(t)} />
@@ -876,31 +877,31 @@ export default function TasksPage() {
             if (sectionTasks.length === 0) return null;
             const isCollapsed = collapsed[`c-${section.key}`];
             return (
-                <div key={section.key} className="mb-4">
+                <div key={section.key} className="mb-5">
                     <button
                         onClick={() => toggle(`c-${section.key}`)}
-                        className={`w-full flex items-center justify-between px-4 py-2.5 rounded-lg border ${section.bgColor} transition-colors`}
+                        className={`w-full flex items-center justify-between px-4 py-3 rounded-xl border ${section.bgColor} transition-colors`}
                     >
                         <div className="flex items-center gap-2">
                             <CheckCircle2 className={`w-4 h-4 ${section.color}`} />
-                            <span className={`text-sm font-semibold ${section.color}`}>{section.label}</span>
-                            <Badge variant="secondary" className="text-[10px] px-1.5">{sectionTasks.length}</Badge>
+                            <span className={`text-sm font-bold ${section.color}`}>{section.label}</span>
+                            <span className="inline-flex items-center justify-center rounded-full bg-green-600 text-white w-6 h-6 text-[10px] font-bold">{sectionTasks.length}</span>
                         </div>
                         {isCollapsed ? <ChevronDown className="w-4 h-4 text-gray-400" /> : <ChevronUp className="w-4 h-4 text-gray-400" />}
                     </button>
-                    {!isCollapsed && (
-                        <Card className="mt-1 shadow-sm overflow-hidden">
+                    <div className={`overflow-hidden transition-all duration-300 ease-out ${!isCollapsed ? 'max-h-[2000px] opacity-100 mt-1.5' : 'max-h-0 opacity-0 mt-0'}`}>
+                        <Card className="shadow-sm overflow-hidden border-gray-100">
                             <CardContent className="p-0">
                                 {sectionTasks.map((t) => {
                                     const cUser = users.find((u) => u.id === t.completed_by);
                                     const cust = custList.find((c) => c.id === t.customer_id);
                                     const cat = TASK_CATEGORY_CONFIG[t.category] || TASK_CATEGORY_CONFIG.other;
                                     return (
-                                        <div key={t.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-100 hover:bg-gray-50/50 opacity-75">
+                                        <div key={t.id} className="flex items-center gap-3 px-4 py-3 border-b border-gray-50 hover:bg-gray-50/50 opacity-60 transition-opacity hover:opacity-80">
                                             <CheckCircle2 className="w-5 h-5 text-green-500 flex-shrink-0" />
                                             <div className="flex-1 min-w-0">
                                                 <button onClick={() => setSelectedTaskId(t.id)} className="text-left w-full">
-                                                    <p className="text-sm font-medium line-through text-gray-400 truncate hover:text-blue-500">{t.title}</p>
+                                                    <p className="text-sm font-medium line-through text-gray-400 truncate hover:text-blue-500 transition-colors">{t.title}</p>
                                                 </button>
                                                 <div className="flex items-center gap-2 mt-0.5 flex-wrap">
                                                     {cust && <Link href={`/customers/${cust.id}`} className="text-xs text-blue-500 hover:underline">{cust.business_name}</Link>}
@@ -909,8 +910,8 @@ export default function TasksPage() {
                                                     </span>
                                                 </div>
                                             </div>
-                                            <Badge className={`text-[10px] px-2 py-0.5 ${cat.color} flex-shrink-0`}>{cat.label}</Badge>
-                                            <button onClick={() => { toggleTask(t.id); showToast(`"${t.title}" ยกเลิกแล้ว`); }} className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-0.5 flex-shrink-0">
+                                            <Badge className={`text-[10px] font-bold px-2 py-0.5 rounded-full ${cat.color} flex-shrink-0`}>{cat.label}</Badge>
+                                            <button onClick={() => { toggleTask(t.id); showToast(`"${t.title}" ยกเลิกแล้ว`); }} className="text-xs text-blue-500 hover:text-blue-700 flex items-center gap-0.5 flex-shrink-0 font-medium">
                                                 <Undo2 className="w-3 h-3" /> ยกเลิก
                                             </button>
                                         </div>
@@ -918,7 +919,7 @@ export default function TasksPage() {
                                 })}
                             </CardContent>
                         </Card>
-                    )}
+                    </div>
                 </div>
             );
         });
@@ -926,35 +927,36 @@ export default function TasksPage() {
 
     // ── Render ──────────────────────────────────────────────────────────────
 
-import { EmptyState } from '@/components/shared/EmptyState';
-
-// ... (existing code)
-
     return (
-        <div className="max-w-5xl mx-auto space-y-5">
+        <div className="max-w-5xl mx-auto space-y-6">
             {/* Header */}
             <div className="flex items-center justify-between">
-                <div>
-                    <h1 className="text-2xl font-bold text-gray-900">งาน</h1>
-                    <p className="text-sm text-gray-500 mt-0.5">
-                        {activeTasks.length} งานค้างอยู่ · {completedTasks.length} เสร็จแล้ว
-                    </p>
+                <div className="flex items-center gap-3">
+                    <div className="p-2.5 rounded-xl bg-gradient-to-br from-blue-50 to-blue-100">
+                        <CheckSquare className="w-5 h-5 text-blue-600" />
+                    </div>
+                    <div>
+                        <h1 className="text-2xl font-black text-gray-900">งาน</h1>
+                        <p className="text-xs text-gray-400 mt-0.5 font-medium">
+                            {activeTasks.length} งานค้างอยู่ · {completedTasks.length} เสร็จแล้ว
+                        </p>
+                    </div>
                 </div>
-                <Button onClick={() => setShowAddPanel(true)} className="bg-blue-600 hover:bg-blue-700 gap-1.5">
+                <Button onClick={() => setShowAddPanel(true)} className="bg-blue-600 hover:bg-blue-700 gap-1.5 shadow-sm shadow-blue-200/50 rounded-xl">
                     <Plus className="w-4 h-4" /> เพิ่มงาน
                 </Button>
             </div>
 
             {/* View Tabs */}
-            <div className="flex items-center gap-1 bg-gray-100 rounded-lg p-1">
+            <div className="flex items-center gap-1 bg-gray-100/80 rounded-xl p-1">
                 {VIEW_TABS.map((tab) => (
                     <button
                         key={tab.id}
                         onClick={() => setView(tab.id)}
-                        className={`flex items-center gap-1.5 px-3 py-2 text-sm rounded-md transition-colors flex-1 justify-center ${view === tab.id ? 'bg-white text-blue-600 font-medium shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
+                        className={`flex items-center gap-1.5 px-3 py-2.5 text-sm rounded-lg transition-all duration-200 flex-1 justify-center ${view === tab.id ? 'bg-white text-blue-600 font-bold shadow-sm' : 'text-gray-500 hover:text-gray-700'}`}
                     >
                         <tab.icon className="w-3.5 h-3.5" />
-                        {tab.label}
+                        <span className="hidden sm:inline">{tab.label}</span>
                     </button>
                 ))}
             </div>
@@ -983,7 +985,7 @@ import { EmptyState } from '@/components/shared/EmptyState';
                         {view === 'byPerson' && renderByPerson()}
                         {view === 'byCustomer' && renderByCustomer()}
                         {view === 'all' && renderAll()}
-                        
+
                         {activeTasks.length === 0 && view === 'all' && (
                             <EmptyState
                                 icon={<Plus className="h-6 w-6" />}
