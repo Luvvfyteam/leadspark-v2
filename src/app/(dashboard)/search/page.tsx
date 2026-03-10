@@ -243,6 +243,16 @@ export default function LeadSearchPage() {
         setSelectedLeads(new Set());
     };
 
+    const handleAssign = (leadId: string, userId: string) => {
+        updateLead(leadId, { assigned_to: userId });
+        showToast('มอบหมายงานแล้ว');
+    };
+
+    const handleAddToBoard = (leadId: string) => {
+        updateLead(leadId, { board_status: 'new' });
+        showToast('เพิ่มเข้า Board แล้ว');
+    };
+
     return (
         <div className="max-w-7xl mx-auto space-y-6">
             <div className="flex items-center justify-between">

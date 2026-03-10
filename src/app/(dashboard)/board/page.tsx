@@ -31,6 +31,13 @@ function getScoreColor(score: number) {
     return 'bg-blue-500 text-white';
 }
 
+function getContactUrgency(dateStr: string): { label: string; className: string } {
+    const days = Math.floor((Date.now() - new Date(dateStr).getTime()) / 86400000);
+    if (days > 21) return { label: `${days}d ago`, className: 'text-red-600 bg-red-50' };
+    if (days >= 14) return { label: `${days}d ago`, className: 'text-amber-600 bg-amber-50' };
+    return { label: `${days}d ago`, className: 'text-gray-500 bg-gray-100' };
+}
+
 interface MoveModalState {
     open: boolean;
     lead: Lead | null;
@@ -47,6 +54,7 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
     onClick: () => void;
 }) {
     const getUserName = (id: string) => mockUsers.find((u) => u.id === id)?.name || '';
+    const urgency = getContactUrgency(lead.updated_at);
 
     return (
         <div
@@ -88,13 +96,31 @@ function LeadCard({ lead, provided, snapshot, onClick }: {
                         ))}
                     </div>
 
+                    {/* Deal Value */}
+                    {lead.deal_value && (
+                        <div className="mt-2">
+                            <span className="text-[11px] font-semibold text-gray-500">
+                                ฿{lead.deal_value.toLocaleString()}
+                            </span>
+                        </div>
+                    )}
+
                     {/* Footer */}
                     <div className="flex items-center justify-between mt-3 pt-2.5 border-t border-gray-50">
-                        <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shadow-sm">
-                            {getUserName(lead.assigned_to).charAt(0)}
+                        {/* Avatar with tooltip */}
+                        <div className="relative group/avatar">
+                            <div className="w-6 h-6 rounded-full bg-gradient-to-br from-blue-500 to-indigo-600 flex items-center justify-center text-[9px] font-bold text-white shadow-sm ring-2 ring-white hover:ring-blue-200 transition-all cursor-default">
+                                {getUserName(lead.assigned_to).charAt(0)}
+                            </div>
+                            {/* Tooltip */}
+                            <div className="absolute bottom-full left-0 mb-1.5 hidden group-hover/avatar:block z-10">
+                                <div className="bg-gray-900 text-white text-[10px] font-medium px-2 py-1 rounded-lg whitespace-nowrap shadow-lg">
+                                    {getUserName(lead.assigned_to)}
+                                </div>
+                            </div>
                         </div>
-                        <span className="text-[10px] text-gray-400 font-medium">
-                            {getRelativeTime(lead.updated_at)}
+                        <span className={`text-[10px] font-semibold px-2 py-0.5 rounded-full ${urgency.className}`}>
+                            {urgency.label}
                         </span>
                     </div>
                 </CardContent>
@@ -109,12 +135,14 @@ function ColumnHeader({
     column,
     count,
     value,
+    quota,
     onUpdate,
     onDelete
 }: {
     column: BoardColumn;
     count: number;
     value: number;
+    quota: number;
     onUpdate: (title: string) => void;
     onDelete: () => void;
 }) {
@@ -132,6 +160,11 @@ function ColumnHeader({
         }
         setIsEditing(false);
     };
+
+    // Progress bar for column quota
+    const progressPct = quota > 0 ? Math.min(Math.round((value / quota) * 100), 100) : 0;
+    const progressColor = progressPct >= 80 ? 'bg-emerald-500' : progressPct >= 50 ? 'bg-amber-400' : 'bg-red-400';
+    const progressBg = progressPct >= 80 ? 'bg-emerald-100' : progressPct >= 50 ? 'bg-amber-100' : 'bg-red-100';
 
     return (
         <div className="flex flex-col mb-3 px-1 group/header">
@@ -167,11 +200,110 @@ function ColumnHeader({
                     )}
                 </div>
             </div>
-            <div className="mt-1.5 flex items-center justify-between">
+            <div className="mt-1.5 flex items-center justify-between mb-2">
                 <span className="text-[11px] text-gray-400 font-bold">
                     {value >= 1000 ? `฿${(value / 1000).toFixed(0)}K` : formatCurrency(value)}
                 </span>
+                {quota > 0 && (
+                    <span className={`text-[10px] font-bold ${progressPct >= 80 ? 'text-emerald-600' : progressPct >= 50 ? 'text-amber-600' : 'text-red-500'
+                        }`}>
+                        {progressPct}%
+                    </span>
+                )}
             </div>
+            {/* Column progress bar — Fibery/Monday.com style */}
+            {quota > 0 && (
+                <div className={`h-1.5 w-full rounded-full ${progressBg} overflow-hidden mb-1`}>
+                    <div
+                        className={`h-full rounded-full transition-all duration-500 ${progressColor}`}
+                        style={{ width: `${progressPct}%` }}
+                    />
+                </div>
+            )}
+        </div>
+    );
+}
+
+// ── Inline Editable Fields (ManyChat-inspired) ────────────────────────────
+
+function InlineField({ icon: Icon, label, value, field, type = 'text', onSave }: {
+    icon: React.ElementType;
+    label: string;
+    value: string | number | null | undefined;
+    field: string;
+    type?: string;
+    onSave: (field: string, value: string | number) => void;
+}) {
+    const [editing, setEditing] = useState(false);
+    const [draft, setDraft] = useState(String(value ?? ''));
+    const ref = useRef<HTMLInputElement>(null);
+
+    useEffect(() => { if (editing) ref.current?.focus(); }, [editing]);
+
+    const handleSave = () => {
+        const val = type === 'number' ? Number(draft) : draft;
+        onSave(field, val);
+        setEditing(false);
+    };
+
+    return (
+        <div
+            className={`flex items-center gap-2.5 px-2.5 py-2 rounded-lg border transition-all cursor-default
+                ${editing ? 'border-blue-300 bg-blue-50/40 shadow-sm' : 'border-gray-100 hover:border-gray-200 hover:bg-gray-50/60'}
+                group`}
+        >
+            <Icon className="w-3.5 h-3.5 text-gray-400 shrink-0" />
+            <div className="flex-1 min-w-0">
+                <p className="text-[9px] font-bold uppercase tracking-wider text-gray-400">{label}</p>
+                {editing ? (
+                    <input
+                        ref={ref}
+                        type={type}
+                        value={draft}
+                        onChange={e => setDraft(e.target.value)}
+                        onBlur={handleSave}
+                        onKeyDown={e => { if (e.key === 'Enter') handleSave(); if (e.key === 'Escape') setEditing(false); }}
+                        className="w-full text-sm text-gray-900 bg-transparent outline-none border-b border-blue-400 pb-0.5 mt-0.5"
+                    />
+                ) : (
+                    <p className="text-sm text-gray-800 truncate mt-0.5">
+                        {value ? String(value) : <span className="text-gray-400 italic text-xs">คลิกเพื่อเพิ่ม</span>}
+                    </p>
+                )}
+            </div>
+            {!editing && (
+                <button
+                    onClick={() => { setDraft(String(value ?? '')); setEditing(true); }}
+                    className="shrink-0 opacity-0 group-hover:opacity-100 transition-opacity p-1 hover:bg-gray-200 rounded-md"
+                    title="แก้ไข"
+                >
+                    <Edit2 className="w-3 h-3 text-gray-400" />
+                </button>
+            )}
+        </div>
+    );
+}
+
+function InlineEditableFields({ lead, onSave }: {
+    lead: Lead;
+    onSave: (field: string, value: string | number) => void;
+}) {
+    return (
+        <div className="space-y-2">
+            <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
+                <Phone className="w-3.5 h-3.5" /> ข้อมูลติดต่อ
+                <span className="text-[10px] text-gray-400 normal-case font-normal">(คลิก → แก้ไขได้เลย)</span>
+            </h4>
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-2">
+                <InlineField icon={Phone} label="โทร" value={lead.phone} field="phone" onSave={onSave} />
+                <InlineField icon={Mail} label="อีเมล" value={lead.email} field="email" onSave={onSave} />
+                <InlineField icon={MessageCircle} label="Line ID" value={lead.line_id} field="line_id" onSave={onSave} />
+                <InlineField icon={Globe} label="เว็บไซต์" value={lead.website_url} field="website_url" onSave={onSave} />
+                <InlineField icon={BarChart3} label="มูลค่าดีล (฿)" value={lead.deal_value} field="deal_value" type="number" onSave={onSave} />
+            </div>
+            {lead.address && (
+                <InlineField icon={MapPin} label="ที่อยู่" value={lead.address} field="address" onSave={onSave} />
+            )}
         </div>
     );
 }
@@ -202,6 +334,11 @@ export default function LeadBoardPage() {
     const [modalActivityType, setModalActivityType] = useState<ActivityType>('note');
     const [modalFollowup, setModalFollowup] = useState('');
     const [modalAssignee, setModalAssignee] = useState('');
+
+    // Quick Action modal states
+    const [quickActionModal, setQuickActionModal] = useState<'call' | 'note' | null>(null);
+    const [quickActionText, setQuickActionText] = useState('');
+    const [quickCallType, setQuickCallType] = useState<'outbound' | 'inbound'>('outbound');
 
     const currentUserId = 'user-001';
 
@@ -382,42 +519,47 @@ export default function LeadBoardPage() {
                 <div className="relative overflow-x-auto pb-6 -mx-4 px-4 sm:mx-0 sm:px-0">
                     <DragDropContext onDragEnd={handleDragEnd}>
                         <div className="flex gap-4 min-w-max pb-4">
-                            {boardColumns.map((column) => (
-                                <div key={column.id} className="w-72 flex flex-col">
-                                    <ColumnHeader
-                                        column={column}
-                                        count={columnData[column.id]?.leads.length || 0}
-                                        value={columnData[column.id]?.totalValue || 0}
-                                        onUpdate={(title) => updateBoardColumn(column.id, { title })}
-                                        onDelete={() => removeBoardColumn(column.id)}
-                                    />
+                            {boardColumns.map((column) => {
+                                // Per-column quota: assume 10 leads * avg deal ~80 score * 5000 = 4M per column
+                                const columnQuota = column.id === 'won' ? 2000000 : column.id === 'interested' ? 3000000 : 1500000;
+                                return (
+                                    <div key={column.id} className="w-72 flex flex-col">
+                                        <ColumnHeader
+                                            column={column}
+                                            count={columnData[column.id]?.leads.length || 0}
+                                            value={columnData[column.id]?.totalValue || 0}
+                                            quota={columnQuota}
+                                            onUpdate={(title) => updateBoardColumn(column.id, { title })}
+                                            onDelete={() => removeBoardColumn(column.id)}
+                                        />
 
-                                    <Droppable droppableId={column.id}>
-                                        {(provided, snapshot) => (
-                                            <div
-                                                ref={provided.innerRef}
-                                                {...provided.droppableProps}
-                                                className={`flex-1 rounded-xl p-2 min-h-[500px] transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 border-2 border-dashed border-blue-200' : 'bg-gray-100/50'
-                                                    }`}
-                                            >
-                                                {columnData[column.id]?.leads.map((lead, index) => (
-                                                    <Draggable key={lead.id} draggableId={lead.id} index={index}>
-                                                        {(p, s) => (
-                                                            <LeadCard
-                                                                lead={lead}
-                                                                provided={p}
-                                                                snapshot={s}
-                                                                onClick={() => setSelectedLeadId(lead.id)}
-                                                            />
-                                                        )}
-                                                    </Draggable>
-                                                ))}
-                                                {provided.placeholder}
-                                            </div>
-                                        )}
-                                    </Droppable>
-                                </div>
-                            ))}
+                                        <Droppable droppableId={column.id}>
+                                            {(provided, snapshot) => (
+                                                <div
+                                                    ref={provided.innerRef}
+                                                    {...provided.droppableProps}
+                                                    className={`flex-1 rounded-xl p-2 min-h-[500px] transition-colors ${snapshot.isDraggingOver ? 'bg-blue-50/50 border-2 border-dashed border-blue-200' : 'bg-gray-100/50'
+                                                        }`}
+                                                >
+                                                    {columnData[column.id]?.leads.map((lead, index) => (
+                                                        <Draggable key={lead.id} draggableId={lead.id} index={index}>
+                                                            {(p, s) => (
+                                                                <LeadCard
+                                                                    lead={lead}
+                                                                    provided={p}
+                                                                    snapshot={s}
+                                                                    onClick={() => setSelectedLeadId(lead.id)}
+                                                                />
+                                                            )}
+                                                        </Draggable>
+                                                    ))}
+                                                    {provided.placeholder}
+                                                </div>
+                                            )}
+                                        </Droppable>
+                                    </div>
+                                );
+                            })}
 
                             {/* Add Column Button */}
                             <div className="w-72 pt-12">
@@ -473,17 +615,34 @@ export default function LeadBoardPage() {
                                 <Users className="w-4 h-4 mr-2" /> ดูข้อมูลลูกค้า
                             </Button>
                         ) : (
-                            <Button
-                                className="flex-1 bg-blue-600 hover:bg-blue-700"
-                                onClick={() => {
-                                    if (selectedLead) {
-                                        moveLeadToColumn(selectedLead.id, 'won');
-                                        showToast('ย้ายไปปิดการขายแล้ว');
-                                    }
-                                }}
-                            >
-                                <CheckCircle2 className="w-4 h-4 mr-2" /> ปิดการขาย
-                            </Button>
+                            <>
+                                <Button
+                                    variant="outline"
+                                    className="flex-1 border-green-500 text-green-700 hover:bg-green-50"
+                                    onClick={() => {
+                                        if (selectedLead) {
+                                            const custId = convertLeadToCustomer(selectedLead.id);
+                                            if (custId) {
+                                                showToast('แปลงเป็นลูกค้าแล้ว! ');
+                                                router.push(`/customers/${custId}`);
+                                            }
+                                        }
+                                    }}
+                                >
+                                    <Users className="w-4 h-4 mr-2" /> แปลงเป็นลูกค้า
+                                </Button>
+                                <Button
+                                    className="flex-1 bg-blue-600 hover:bg-blue-700"
+                                    onClick={() => {
+                                        if (selectedLead) {
+                                            moveLeadToColumn(selectedLead.id, 'won');
+                                            showToast('ย้ายไปปิดการขายแล้ว');
+                                        }
+                                    }}
+                                >
+                                    <CheckCircle2 className="w-4 h-4 mr-2" /> ปิดการขาย
+                                </Button>
+                            </>
                         )}
                         <Button variant="outline" onClick={() => setSelectedLeadId(null)}>
                             ปิด
@@ -524,59 +683,50 @@ export default function LeadBoardPage() {
                                 </div>
                             </div>
 
-                            {/* Contact Info */}
-                            <div className="space-y-3">
-                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider flex items-center gap-2">
-                                    <Phone className="w-3.5 h-3.5" /> ข้อมูลติดต่อ
-                                </h4>
-                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                                    {selectedLead.phone && (
-                                        <a href={`tel:${selectedLead.phone}`} className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
-                                            <Phone className="w-4 h-4 text-gray-400" /> {selectedLead.phone}
-                                        </a>
-                                    )}
-                                    {selectedLead.email && (
-                                        <a href={`mailto:${selectedLead.email}`} className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
-                                            <Mail className="w-4 h-4 text-gray-400" /> {selectedLead.email}
-                                        </a>
-                                    )}
-                                    {selectedLead.line_id && (
-                                        <div className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 text-sm text-gray-700">
-                                            <MessageCircle className="w-4 h-4 text-green-500" /> {selectedLead.line_id}
-                                        </div>
-                                    )}
-                                    {selectedLead.website_url && (
-                                        <a href={selectedLead.website_url} target="_blank" rel="noreferrer" className="flex items-center gap-2.5 p-2.5 rounded-lg border border-gray-100 hover:border-blue-200 hover:bg-blue-50/50 transition-all text-sm text-gray-700">
-                                            <Globe className="w-4 h-4 text-blue-500" /> เว็บไซต์ <ExternalLink className="w-3 h-3 ml-auto text-gray-300" />
-                                        </a>
-                                    )}
-                                </div>
-                                {selectedLead.address && (
-                                    <div className="flex items-start gap-2.5 p-2.5 rounded-lg border border-gray-100 text-sm text-gray-700">
-                                        <MapPin className="w-4 h-4 text-gray-400 mt-0.5 shrink-0" /> {selectedLead.address}
-                                    </div>
-                                )}
-                            </div>
+                            {/* Contact Info — Inline Editable (ManyChat-inspired) */}
+                            <InlineEditableFields lead={selectedLead} onSave={(field: string, value: string | number) => updateLead(selectedLead.id, { [field]: value })} />
 
                             {/* Google Info */}
-                            {(selectedLead.google_rating > 0) && (
-                                <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
-                                    <div className="flex items-center gap-2">
-                                        <div className="bg-white p-1.5 rounded-lg shadow-sm">
-                                            <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="google" />
-                                        </div>
-                                        <div>
-                                            <p className="text-xs font-semibold text-gray-900">Google Rating</p>
-                                            <div className="flex items-center gap-1 mt-0.5">
-                                                <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
-                                                <span className="text-sm font-bold">{selectedLead.google_rating}</span>
-                                                <span className="text-[10px] text-gray-400">({selectedLead.google_review_count} รีวิว)</span>
+                            {
+
+                                (selectedLead.google_rating > 0) && (
+                                    <div className="bg-gray-50 rounded-xl p-3 flex items-center justify-between">
+                                        <div className="flex items-center gap-2">
+                                            <div className="bg-white p-1.5 rounded-lg shadow-sm">
+                                                <img src="https://www.google.com/favicon.ico" className="w-4 h-4" alt="google" />
+                                            </div>
+                                            <div>
+                                                <p className="text-xs font-semibold text-gray-900">Google Rating</p>
+                                                <div className="flex items-center gap-1 mt-0.5">
+                                                    <Star className="w-3.5 h-3.5 text-yellow-500 fill-yellow-500" />
+                                                    <span className="text-sm font-bold">{selectedLead.google_rating}</span>
+                                                    <span className="text-[10px] text-gray-400">({selectedLead.google_review_count} รีวิว)</span>
+                                                </div>
                                             </div>
                                         </div>
+                                        <button className="text-[10px] text-blue-600 font-medium hover:underline">ดูแผนที่</button>
                                     </div>
-                                    <button className="text-[10px] text-blue-600 font-medium hover:underline">ดูแผนที่</button>
+                                )
+                            }
+
+                            {/* Quick Actions */}
+                            <div className="space-y-2">
+                                <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider">การดำเนินการด่วน</h4>
+                                <div className="flex gap-2">
+                                    <button
+                                        onClick={() => { setQuickActionModal('call'); setQuickActionText(''); setQuickCallType('outbound'); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border-2 border-blue-100 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-semibold transition-all"
+                                    >
+                                        <Phone className="w-4 h-4" /> บันทึกโทร
+                                    </button>
+                                    <button
+                                        onClick={() => { setQuickActionModal('note'); setQuickActionText(''); }}
+                                        className="flex-1 flex items-center justify-center gap-2 py-2 px-3 rounded-xl border-2 border-amber-100 bg-amber-50 hover:bg-amber-100 text-amber-700 text-xs font-semibold transition-all"
+                                    >
+                                        <MessageCircle className="w-4 h-4" /> จดบันทึก
+                                    </button>
                                 </div>
-                            )}
+                            </div>
 
                             {/* Activities Timeline */}
                             <div className="space-y-3">
@@ -613,10 +763,120 @@ export default function LeadBoardPage() {
                         </div>
                     );
                 })()}
-            </SlideOverPanel>
+            </SlideOverPanel >
+
+            {/* Quick Action: Log Call Modal */}
+            < Dialog open={quickActionModal === 'call'} onOpenChange={(open) => !open && setQuickActionModal(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <Phone className="w-4 h-4 text-blue-600" />
+                            บันทึกการโทร — {selectedLead?.business_name}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">ประเภทการโทร</label>
+                            <select
+                                value={quickCallType}
+                                onChange={(e) => setQuickCallType(e.target.value as 'outbound' | 'inbound')}
+                                className="w-full px-3 py-2 border rounded-lg text-sm bg-white"
+                            >
+                                <option value="outbound">โทรออก (Outbound)</option>
+                                <option value="inbound">โทรเข้า (Inbound)</option>
+                            </select>
+                        </div>
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">บันทึก</label>
+                            <Textarea
+                                value={quickActionText}
+                                onChange={(e) => setQuickActionText(e.target.value)}
+                                placeholder="สรุปการสนทนา..."
+                                rows={3}
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setQuickActionModal(null)}>ยกเลิก</Button>
+                        <Button
+                            className="bg-blue-600 hover:bg-blue-700"
+                            onClick={() => {
+                                if (!selectedLead || !quickActionText.trim()) return;
+                                addActivity({
+                                    id: `act-${Date.now()}`,
+                                    customer_id: '',
+                                    lead_id: selectedLead.id,
+                                    team_id: 'team-001',
+                                    type: 'call',
+                                    content: `[${quickCallType === 'outbound' ? 'โทรออก' : 'โทรเข้า'}] ${quickActionText}`,
+                                    followup_date: null,
+                                    created_by: 'user-001',
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString(),
+                                });
+                                setQuickActionModal(null);
+                                showToast('บันทึกการโทรแล้ว');
+                            }}
+                        >
+                            บันทึก
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog >
+
+            {/* Quick Action: Note Modal */}
+            < Dialog open={quickActionModal === 'note'} onOpenChange={(open) => !open && setQuickActionModal(null)}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle className="flex items-center gap-2">
+                            <MessageCircle className="w-4 h-4 text-amber-600" />
+                            จดบันทึก — {selectedLead?.business_name}
+                        </DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 py-2">
+                        <div>
+                            <label className="block text-sm font-medium text-gray-700 mb-1">บันทึก</label>
+                            <Textarea
+                                value={quickActionText}
+                                onChange={(e) => setQuickActionText(e.target.value)}
+                                placeholder="บันทึกข้อมูลสำคัญ..."
+                                rows={4}
+                                autoFocus
+                            />
+                        </div>
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setQuickActionModal(null)}>ยกเลิก</Button>
+                        <Button
+                            className="bg-amber-600 hover:bg-amber-700"
+                            onClick={() => {
+                                if (!selectedLead || !quickActionText.trim()) return;
+                                addActivity({
+                                    id: `act-${Date.now()}`,
+                                    customer_id: '',
+                                    lead_id: selectedLead.id,
+                                    team_id: 'team-001',
+                                    type: 'note',
+                                    content: quickActionText,
+                                    followup_date: null,
+                                    created_by: 'user-001',
+                                    created_at: new Date().toISOString(),
+                                    updated_at: new Date().toISOString(),
+                                });
+                                setQuickActionModal(null);
+                                showToast('บันทึกเสร็จแล้ว');
+                            }}
+                        >
+                            บันทึก
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog >
 
             {/* Move Modal */}
-            <Dialog open={moveModal.open} onOpenChange={(open) => {
+            < Dialog open={moveModal.open} onOpenChange={(open) => {
+
                 if (!open) {
                     setMoveModal({ open: false, lead: null, fromColumn: null, toColumn: null });
                 }
@@ -703,7 +963,7 @@ export default function LeadBoardPage() {
                         </Button>
                     </DialogFooter>
                 </DialogContent>
-            </Dialog>
-        </div>
+            </Dialog >
+        </div >
     );
 }

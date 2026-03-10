@@ -45,14 +45,14 @@ export function MorningBrief() {
     const userName = 'Asia';
 
     return (
-        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-blue-600 via-blue-700 to-indigo-700 px-6 py-5 shadow-lg shadow-blue-200/40">
+        <div className="relative overflow-hidden rounded-2xl bg-gradient-to-br from-indigo-600 via-indigo-700 to-violet-700 px-6 py-5 shadow-lg shadow-indigo-300/30">
             {/* Background decoration */}
-            <div className="absolute -top-10 -right-10 w-40 h-40 bg-white/5 rounded-full blur-2xl" />
-            <div className="absolute -bottom-8 -left-8 w-32 h-32 bg-indigo-400/10 rounded-full blur-xl" />
+            <div className="absolute -top-10 -right-10 w-44 h-44 bg-white/5 rounded-full blur-2xl" />
+            <div className="absolute -bottom-8 -left-8 w-36 h-36 bg-violet-400/10 rounded-full blur-xl" />
 
             <div className="relative flex items-start gap-4">
                 {/* Avatar / Icon */}
-                <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/15 backdrop-blur-sm shrink-0">
+                <div className="hidden sm:flex items-center justify-center w-12 h-12 rounded-xl bg-white/20 backdrop-blur-sm shrink-0 shadow-inner">
                     <Sparkles className="w-6 h-6 text-white" />
                 </div>
 

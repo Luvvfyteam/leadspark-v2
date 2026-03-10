@@ -1,6 +1,6 @@
 import {
     LayoutDashboard,
-    Search,
+    UserPlus,
     Kanban,
     Users,
     CheckSquare,
@@ -9,46 +9,42 @@ import {
     Sparkles,
     BarChart3,
     Settings,
-    Store,
-    ClipboardList,
-    Send,
-    Building2,
 } from 'lucide-react';
 
 // ==================== NAVIGATION ====================
 
 export const NAV_SECTIONS = [
     {
-        title: 'ตลาด B2B',
-        isMarketplace: true,
+        title: 'SALES',
+        i18nKey: 'nav.group.sales',
+        isMarketplace: false,
+        showLabel: false,
         items: [
-            { label: 'Deal Feed', href: '/marketplace/deal-feed', icon: 'Store' },
-            { label: 'RFQ ของฉัน', href: '/marketplace/rfq', icon: 'ClipboardList' },
-            { label: 'ข้อเสนอ', href: '/marketplace/proposals', icon: 'Send' },
-            { label: 'โปรไฟล์ธุรกิจ', href: '/marketplace/business-profile', icon: 'Building2' },
+            { label: 'หน้าหลัก', i18nKey: 'nav.home', href: '/', icon: 'LayoutDashboard' },
+            { label: 'Pipeline', i18nKey: 'nav.pipeline', href: '/board', icon: 'Kanban' },
+            { label: 'ลูกค้า', i18nKey: 'nav.customers', href: '/customers', icon: 'Users' },
+            { label: 'เพิ่มลีด', i18nKey: 'nav.addLead', href: '/search', icon: 'UserPlus' },
+            { label: 'งาน', i18nKey: 'nav.tasks', href: '/tasks', icon: 'CheckSquare' },
         ],
     },
     {
-        title: 'จัดการขาย',
+        title: 'TOOLS',
+        i18nKey: 'nav.group.tools',
         isMarketplace: false,
+        showLabel: true,
         items: [
-            { label: 'หน้าหลัก', href: '/', icon: 'LayoutDashboard' },
-            { label: 'Pipeline', href: '/board', icon: 'Kanban' },
-            { label: 'ลูกค้า', href: '/customers', icon: 'Users' },
-            { label: 'ค้นหาลีด', href: '/search', icon: 'Search' },
-            { label: 'งาน', href: '/tasks', icon: 'CheckSquare' },
-            { label: 'เอกสาร', href: '/documents', icon: 'FileText' },
-            { label: 'การเงิน', href: '/payments', icon: 'CreditCard' },
-            { label: 'Spark AI', href: '/spark', icon: 'Sparkles' },
-            { label: 'รายงาน', href: '/reports', icon: 'BarChart3' },
-            { label: 'ตั้งค่า', href: '/settings', icon: 'Settings' },
+            { label: 'เอกสาร', i18nKey: 'nav.documents', href: '/documents', icon: 'FileText' },
+            { label: 'การเงิน', i18nKey: 'nav.finance', href: '/payments', icon: 'CreditCard' },
+            { label: 'Spark AI', i18nKey: 'nav.sparkAI', href: '/spark', icon: 'Sparkles' },
+            { label: 'รายงาน', i18nKey: 'nav.reports', href: '/reports', icon: 'BarChart3' },
+            { label: 'ตั้งค่า', i18nKey: 'nav.settings', href: '/settings', icon: 'Settings' },
         ],
     },
 ];
 
 export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }>> = {
     LayoutDashboard,
-    Search,
+    UserPlus,
     Kanban,
     Users,
     CheckSquare,
@@ -57,10 +53,6 @@ export const ICON_MAP: Record<string, React.ComponentType<{ className?: string }
     Sparkles,
     BarChart3,
     Settings,
-    Store,
-    ClipboardList,
-    Send,
-    Building2,
 };
 
 // ==================== STATUS LABELS & COLORS ====================

@@ -97,6 +97,7 @@ export interface Lead {
   assigned_to: string;
   converted_customer_id: string | null;
   next_followup_date: string | null;
+  deal_value?: number;
   created_at: string;
   updated_at: string;
 }

@@ -15,7 +15,7 @@ import {
     Save, CheckCircle, Plus, Trash2, Edit2, X, UserPlus,
     Mail, Phone, CreditCard, FileText, ChevronLeft, ChevronRight,
     Link as LinkIcon, Download, Upload, Zap, Shield, HelpCircle,
-    Smartphone, MessageSquare, Globe, Banknote, Calendar, Settings2
+    Smartphone, MessageSquare, Globe, Banknote, Calendar, Settings2, BarChart3
 } from 'lucide-react';
 
 const tabs = [

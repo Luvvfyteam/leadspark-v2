@@ -1,9 +1,12 @@
 'use client';
 
 import { useMemo, useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Badge } from '@/components/ui/badge';
 import {
     BarChart, Bar, XAxis, YAxis, Tooltip, ResponsiveContainer,
     PieChart, Pie, Cell, CartesianGrid, Legend,
@@ -62,6 +65,7 @@ const PIE_COLORS = ['#3b82f6', '#8b5cf6', '#f59e0b', '#22c55e', '#ef4444', '#06b
 // ── Main Page ─────────────────────────────────────────────────────────────
 
 export default function ReportsPage() {
+    const router = useRouter();
     const { payments, leads, deals, customers, tasks, goals, updateGoal } = useAppStore();
 
     // ── Local States ──────────────────────────────────────────────────────
@@ -258,7 +262,7 @@ export default function ReportsPage() {
                                 <BarChart
                                     data={revenueData}
                                     margin={{ top: 20, right: 10, left: 0, bottom: 5 }}
-                                    onClick={(data) => {
+                                    onClick={(data: any) => {
                                         if (data && data.activePayload) {
                                             const item = data.activePayload[0].payload;
                                             setDrillDownData({ title: `รายรับเดือน ${item.month}`, type: 'revenue', key: item.raw });

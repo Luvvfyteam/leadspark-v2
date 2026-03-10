@@ -3,7 +3,7 @@
 import { useState, useEffect, useMemo, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
 import { useAppStore } from '@/stores/app-store';
-import { Search, X, Users, Target, CheckSquare, FileText } from 'lucide-react';
+import { Search, X, Users, Target, CheckSquare, FileText, ChevronRight } from 'lucide-react';
 
 export function GlobalSearch() {
     const [open, setOpen] = useState(false);
@@ -88,7 +88,7 @@ export function GlobalSearch() {
                                     <p className="text-xs text-gray-400 mt-1">ลองใช้คำค้นหาอื่น หรือลองดูคีย์เวิร์ดที่กว้างขึ้น</p>
                                 </div>
                             )}
-                            
+
                             {results.customers.length > 0 && (
                                 <div className="mb-2">
                                     <p className="px-5 py-2 text-[10px] font-bold text-gray-400 uppercase tracking-widest bg-gray-50/50">👥 ลูกค้า</p>
